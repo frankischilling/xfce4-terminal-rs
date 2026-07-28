@@ -18,6 +18,8 @@ if [ -e "$source_dir" ] || [ -e "$build_dir" ]; then
 fi
 
 baseline=$(sed -n '1p' "$repository/tests/reference/BASELINE")
+git config --global --add safe.directory "$repository"
+git config --global --add safe.directory "$repository/.git"
 git clone --quiet --no-checkout "$repository" "$source_dir"
 git -C "$source_dir" checkout --quiet --detach "$baseline"
 meson setup "$build_dir" "$source_dir" -Ddoc=false
