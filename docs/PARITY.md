@@ -17,6 +17,12 @@ parity on its own.
 | System integration | Login records and FreeBSD or DragonFlyBSD foreground-process checks | Not started |
 | Packaging and pixels | Installed files and exact client-area screenshots in the frozen test environment | Not started |
 
+`tests/reference/BASELINE` records the exact C commit. Local builds use
+`tests/reference/build-reference.sh`. CI uses
+`tests/reference/Containerfile` to pin the native build environment.
+`tests/reference/differential.sh` captures exit status, standard output, and
+standard error from both programs.
+
 ## Rules
 
 - Expected values must come from the frozen C executable or a documented public
@@ -28,4 +34,3 @@ parity on its own.
 - Visual comparisons use fixed libraries, theme, fonts, locale, DPI, window
   size, terminal contents, cursor state, and compositor.
 - The final cutover requires every row above to be complete.
-

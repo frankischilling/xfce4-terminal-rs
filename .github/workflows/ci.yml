@@ -25,7 +25,7 @@ jobs:
       matrix:
         toolchain:
           - 1.85.0
-          - 1.95.0
+          - stable
     steps:
       - uses: actions/checkout@v6
       - name: Install native libraries
@@ -44,10 +44,10 @@ jobs:
             --component clippy \
             --component rustfmt
       - name: Check formatting
-        if: matrix.toolchain == '1.95.0'
+        if: matrix.toolchain == 'stable'
         run: cargo +${{ matrix.toolchain }} fmt --all -- --check
       - name: Run Clippy
-        if: matrix.toolchain == '1.95.0'
+        if: matrix.toolchain == 'stable'
         run: cargo +${{ matrix.toolchain }} clippy --all-targets --all-features --locked -- -D warnings
       - name: Run Rust tests
         run: cargo +${{ matrix.toolchain }} test --all-targets --all-features --locked
@@ -83,6 +83,27 @@ jobs:
         run: ./build/rust/xfce4-terminal-rs
       - name: Build the frozen C reference
         run: |
-          reference_binary=$(tests/reference/build-reference.sh "$RUNNER_TEMP/xfce4-terminal-reference" | tail -n 1)
+          docker build \
+            --file tests/reference/Containerfile \
+            --tag xfce4-terminal-reference \
+            .
+          mkdir "$RUNNER_TEMP/xfce4-terminal-reference"
+          docker run --rm \
+            --mount "type=bind,source=$PWD,target=/repository,readonly" \
+            --mount "type=bind,source=$RUNNER_TEMP/xfce4-terminal-reference,target=/output" \
+            xfce4-terminal-reference
+          reference_binary="$RUNNER_TEMP/xfce4-terminal-reference/build/terminal/xfce4-terminal"
           test -x "$reference_binary"
-
+          if tests/reference/differential.sh \
+            "$reference_binary" \
+            ./build/rust/xfce4-terminal-rs \
+            "$RUNNER_TEMP/version-parity" \
+            -- --version
+          then
+            echo "Version behavior already matches."
+          else
+            test "$?" -eq 1
+            echo "Version difference captured for issue #2."
+          fi
+          test -f "$RUNNER_TEMP/version-parity/reference.stdout"
+          test -f "$RUNNER_TEMP/version-parity/candidate.stdout"

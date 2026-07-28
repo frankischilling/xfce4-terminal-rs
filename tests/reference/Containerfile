@@ -1,0 +1,30 @@
+FROM ubuntu@sha256:52df9b1ee71626e0088f7d400d5c6b5f7bb916f8f0c82b474289a4ece6cf3faf
+
+RUN printf '%s\n' \
+      'Types: deb' \
+      'URIs: https://snapshot.ubuntu.com/ubuntu/20260728T000000Z/' \
+      'Suites: noble noble-updates noble-security' \
+      'Components: main universe' \
+      'Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg' \
+      > /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      gettext \
+      git \
+      libgtk-3-dev \
+      libgtk-layer-shell-dev \
+      libpcre2-dev \
+      libutempter-dev \
+      libvte-2.91-dev \
+      libxfce4ui-2-dev \
+      libxfconf-0-dev \
+      meson \
+      ninja-build \
+      pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY tests/reference/container-build.sh /usr/local/bin/build-xfce4-terminal-reference
+
+ENTRYPOINT ["/usr/local/bin/build-xfce4-terminal-reference"]

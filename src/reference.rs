@@ -1,7 +1,9 @@
 //! Observable identity of the C application used for differential tests.
 
-/// Full commit ID of the frozen C reference.
-pub const BASELINE_COMMIT: &str = "b5933b80d28ca35f873df8da2998e23be5f4e104";
+/// Returns the full commit ID of the frozen C reference.
+pub fn baseline_commit() -> &'static str {
+    include_str!("../tests/reference/BASELINE").trim()
+}
 
 /// Application version at the reference commit.
 pub const REFERENCE_VERSION: &str = "1.2.0-dev";

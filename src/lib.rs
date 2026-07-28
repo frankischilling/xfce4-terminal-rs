@@ -11,7 +11,7 @@ pub fn candidate_status() -> String {
     format!(
         "xfce4-terminal Rust candidate for {} ({})",
         reference::REFERENCE_VERSION,
-        &reference::BASELINE_COMMIT[..8]
+        &reference::baseline_commit()[..8]
     )
 }
 
