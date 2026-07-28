@@ -52,6 +52,8 @@ cargo test --all-targets --all-features --locked
 - `docs/ARCHITECTURE.md` describes the build, Rust, and compatibility
   boundaries.
 - `docs/CLI.md` documents command-line behavior and its differential probe.
+- `docs/PREFERENCES.md` documents Xfconf storage, migration, and preference
+  proof.
 - `HACKING` explains the issue and pull request workflow.
 - The existing XML manual under `doc/` remains the source for the
   `xfce4-terminal` man page.
