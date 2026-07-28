@@ -73,6 +73,8 @@ jobs:
             libxfce4ui-2-dev \
             libxfconf-0-dev \
             meson \
+            xauth \
+            xvfb \
             xsltproc
       - name: Build the mixed tree
         run: |
@@ -93,17 +95,80 @@ jobs:
             --mount "type=bind,source=$RUNNER_TEMP/xfce4-terminal-reference,target=/output" \
             xfce4-terminal-reference
           reference_binary="$RUNNER_TEMP/xfce4-terminal-reference/build/terminal/xfce4-terminal"
+          reference_options="$RUNNER_TEMP/xfce4-terminal-reference/build/options-probe"
+          candidate_options="./build/rust/cargo-target/release/xfce4-terminal-options-probe"
           test -x "$reference_binary"
-          if tests/reference/differential.sh \
-            "$reference_binary" \
-            ./build/rust/xfce4-terminal-rs \
-            "$RUNNER_TEMP/version-parity" \
-            -- --version
-          then
-            echo "Version behavior already matches."
-          else
-            test "$?" -eq 1
-            echo "Version difference captured for issue #2."
-          fi
-          test -f "$RUNNER_TEMP/version-parity/reference.stdout"
-          test -f "$RUNNER_TEMP/version-parity/candidate.stdout"
+          test -x "$reference_options"
+          test -x "$candidate_options"
+
+          for option in help version color-table
+          do
+            xvfb-run --auto-servernum tests/reference/differential.sh \
+              "$reference_binary" \
+              ./build/rust/xfce4-terminal-rs \
+              "$RUNNER_TEMP/$option-parity" \
+              -- "--$option"
+          done
+
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-defaults" \
+            -- \
+            --default-display=:7 \
+            --default-working-directory=/tmp \
+            --title=first \
+            --tab \
+            --working-directory=/var \
+            --window \
+            --display=:8
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-grouped" \
+            -- -HTgrouped -x printf %s hello
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-grouped-execute" \
+            -- -Hx echo
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-inline-execute-error" \
+            -- -xecho --help
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-unicode-error" \
+            -- '-é'
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-byte-command" \
+            -- -x echo $'\xff'
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-byte-title" \
+            -- --title $'\xff'
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-inline-byte-title" \
+            -- $'--title=\xff'
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-delimited-byte" \
+            -- -- $'-\xff'
+          tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-error" \
+            -- --zoom=8
+          CAN_REUSE_WINDOW=1 tests/reference/differential.sh \
+            "$reference_options" \
+            "$candidate_options" \
+            "$RUNNER_TEMP/options-reuse" \
+            -- --tab --title=reused --window --title=new

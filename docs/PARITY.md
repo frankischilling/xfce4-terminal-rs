@@ -8,7 +8,7 @@ parity on its own.
 | Area | Proof boundary | Status |
 | --- | --- | --- |
 | Build foundation | Cargo and Meson build the Rust candidate; CI can build the frozen C revision | Complete |
-| Command line | Exit status, stdout, stderr, and parsed launch specifications | Not started |
+| Command line | Exit status, stdout, stderr, and parsed launch specifications | In progress |
 | Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | Not started |
 | Terminal screen | PTY environment, child lifecycle, titles, colors, search, links, paste, and scrolling | Not started |
 | Window interface | Windows, tabs, menus, toolbar, shortcuts, focus, drag and drop, and confirmations | Not started |

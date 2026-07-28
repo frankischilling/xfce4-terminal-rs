@@ -24,5 +24,8 @@ git clone --quiet --no-checkout "$repository" "$source_dir"
 git -C "$source_dir" checkout --quiet --detach "$baseline"
 meson setup "$build_dir" "$source_dir" -Ddoc=false
 meson compile -C "$build_dir"
+"$repository/tests/reference/build-options-probe.sh" \
+  "$source_dir" \
+  "$build_dir/options-probe"
 
 printf '%s\n' "$build_dir/terminal/xfce4-terminal"

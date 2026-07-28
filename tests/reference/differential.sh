@@ -29,11 +29,11 @@ fi
 mkdir -p "$output_dir"
 
 set +e
-"$reference_binary" "$@" \
+LC_ALL=C "$reference_binary" "$@" \
   >"$output_dir/reference.stdout" \
   2>"$output_dir/reference.stderr"
 reference_status=$?
-"$candidate_binary" "$@" \
+LC_ALL=C "$candidate_binary" "$@" \
   >"$output_dir/candidate.stdout" \
   2>"$output_dir/candidate.stderr"
 candidate_status=$?
