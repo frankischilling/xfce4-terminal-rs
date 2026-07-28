@@ -36,7 +36,8 @@ jobs:
             libgtk-layer-shell-dev \
             libvte-2.91-dev \
             libxfce4ui-2-dev \
-            libxfconf-0-dev
+            libxfconf-0-dev \
+            xfconf
       - name: Install Rust
         run: |
           rustup toolchain install "${{ matrix.toolchain }}" \
@@ -96,10 +97,18 @@ jobs:
             xfce4-terminal-reference
           reference_binary="$RUNNER_TEMP/xfce4-terminal-reference/build/terminal/xfce4-terminal"
           reference_options="$RUNNER_TEMP/xfce4-terminal-reference/build/options-probe"
+          reference_preferences="$RUNNER_TEMP/xfce4-terminal-reference/build/preferences-probe"
           candidate_options="./build/rust/cargo-target/release/xfce4-terminal-options-probe"
           test -x "$reference_binary"
           test -x "$reference_options"
+          test -x "$reference_preferences"
           test -x "$candidate_options"
+
+          XFCE4_TERMINAL_REFERENCE_PREFERENCES_PROBE="$reference_preferences" \
+            cargo test --test preferences_parity --locked
+          git diff --exit-code \
+            "$(cat tests/reference/BASELINE)" \
+            -- colorschemes po/meson.build po/POTFILES po/LINGUAS
 
           for option in help version color-table
           do

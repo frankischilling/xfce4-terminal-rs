@@ -6,7 +6,11 @@
 
 mod ffi;
 
+pub mod accelerators;
 pub mod cli;
+pub mod colors;
+pub mod localization;
+pub mod preferences;
 pub mod reference;
 
 /// Returns the status text used by the development-only Rust candidate.

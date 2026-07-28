@@ -27,5 +27,9 @@ meson compile -C "$build_dir"
 "$repository/tests/reference/build-options-probe.sh" \
   "$source_dir" \
   "$build_dir/options-probe"
+"$repository/tests/reference/build-preferences-probe.sh" \
+  "$source_dir" \
+  "$build_dir" \
+  "$build_dir/preferences-probe"
 
 printf '%s\n' "$build_dir/terminal/xfce4-terminal"
