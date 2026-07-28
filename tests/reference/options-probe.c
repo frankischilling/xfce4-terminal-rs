@@ -1,4 +1,5 @@
 #include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,7 +13,11 @@ print_string (const gchar *name,
   if (value == NULL)
     g_print ("|%s=-", name);
   else
-    g_print ("|%s=%" G_GSIZE_FORMAT ":%s", name, strlen (value), value);
+    {
+      const gsize length = strlen (value);
+      g_print ("|%s=%" G_GSIZE_FORMAT ":", name, length);
+      fwrite (value, 1, length, stdout);
+    }
 }
 
 
@@ -29,7 +34,11 @@ print_command (gchar **command)
 
   g_print ("|command=%u", g_strv_length (command));
   for (n = 0; command[n] != NULL; ++n)
-    g_print (":%" G_GSIZE_FORMAT ":%s", strlen (command[n]), command[n]);
+    {
+      const gsize length = strlen (command[n]);
+      g_print (":%" G_GSIZE_FORMAT ":", length);
+      fwrite (command[n], 1, length, stdout);
+    }
 }
 
 
@@ -45,7 +54,8 @@ main (int argc,
   windows = terminal_window_attr_parse (argc, argv, can_reuse, &error);
   if (windows == NULL)
     {
-      g_printerr ("%s\n", error->message);
+      fwrite (error->message, 1, strlen (error->message), stderr);
+      fputc ('\n', stderr);
       g_error_free (error);
       return EXIT_FAILURE;
     }
