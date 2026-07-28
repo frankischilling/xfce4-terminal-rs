@@ -880,32 +880,7 @@ dependencies = [
  "libc",
  "libxfce4ui-sys",
  "pango",
- "xfconf",
  "zoha-vte",
-]
-
-[[package]]
-name = "xfconf"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34ff7fbbdf62a4761bdc6c0bb1a004b09803055d0a1707d8c2b67481ee4476eb"
-dependencies = [
- "bitflags 2.13.1",
- "glib",
- "libc",
- "xfconf-sys",
-]
-
-[[package]]
-name = "xfconf-sys"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c66b530feeee57b47ad1b395b1fa304a32258e37e8ef4c91263c9b39ec61749d"
-dependencies = [
- "glib-sys",
- "gobject-sys",
- "libc",
- "system-deps 7.0.8",
 ]
 
 [[package]]

@@ -35,6 +35,4 @@ gtk-layer-shell = { version = "=0.8.2", optional = true }
 libc = "0.2"
 libxfce4ui-sys = "=0.1.0"
 pango = "0.18"
-xfconf = "=0.1.0"
 zoha-vte = { version = "=0.6.0", features = ["v0_50"] }
-
