@@ -14,7 +14,8 @@ The following commands return without starting a terminal window:
   C application.
 
 These outputs are compared byte for byte with the frozen C executable under
-the C locale.
+the C locale. The probe disables the GTK accessibility bridge so a missing
+session bus cannot add an environment-specific warning to standard error.
 
 ## Windows and tabs
 
