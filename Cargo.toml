@@ -19,6 +19,14 @@ path = "src/main.rs"
 name = "xfce4-terminal-options-probe"
 path = "src/bin/options_probe.rs"
 
+[[bin]]
+name = "xfce4-terminal-preferences-probe"
+path = "src/bin/preferences_probe.rs"
+
+[[bin]]
+name = "xfce4-terminal-accelerator-probe"
+path = "src/bin/accelerator_probe.rs"
+
 [profile.release]
 lto = "thin"
 strip = true

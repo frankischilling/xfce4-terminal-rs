@@ -1,0 +1,94 @@
+background-mode	enum:TerminalBackground	TERMINAL_BACKGROUND_SOLID	TERMINAL_BACKGROUND_SOLID,TERMINAL_BACKGROUND_IMAGE,TERMINAL_BACKGROUND_TRANSPARENT	BackgroundMode
+background-image-file	string	<null>		BackgroundImageFile
+background-image-style	enum:TerminalBackgroundStyle	TERMINAL_BACKGROUND_STYLE_TILED	TERMINAL_BACKGROUND_STYLE_TILED,TERMINAL_BACKGROUND_STYLE_CENTERED,TERMINAL_BACKGROUND_STYLE_SCALED,TERMINAL_BACKGROUND_STYLE_STRETCHED,TERMINAL_BACKGROUND_STYLE_FILLED	BackgroundImageStyle
+background-darkness	double	0.5	0:1	BackgroundDarkness
+background-image-shading	double	0.5	0:1	BackgroundImageShading
+binding-backspace	enum:TerminalEraseBinding	TERMINAL_ERASE_BINDING_AUTO	TERMINAL_ERASE_BINDING_AUTO,TERMINAL_ERASE_BINDING_ASCII_DELETE,TERMINAL_ERASE_BINDING_DELETE_SEQUENCE,TERMINAL_ERASE_BINDING_ASCII_BACKSPACE,TERMINAL_ERASE_BINDING_ERASE_TTY	BindingBackspace
+binding-delete	enum:TerminalEraseBinding	TERMINAL_ERASE_BINDING_AUTO	TERMINAL_ERASE_BINDING_AUTO,TERMINAL_ERASE_BINDING_ASCII_DELETE,TERMINAL_ERASE_BINDING_DELETE_SEQUENCE,TERMINAL_ERASE_BINDING_ASCII_BACKSPACE,TERMINAL_ERASE_BINDING_ERASE_TTY	BindingDelete
+binding-ambiguous-width	enum:TerminalAmbiguousWidthBinding	TERMINAL_AMBIGUOUS_WIDTH_BINDING_NARROW	TERMINAL_AMBIGUOUS_WIDTH_BINDING_NARROW,TERMINAL_AMBIGUOUS_WIDTH_BINDING_WIDE	BindingAmbiguousWidth
+color-foreground	string	#ffffff		ColorForeground
+color-background	string	#000000		ColorBackground
+color-background-vary	boolean	false		ColorBackgroundVary
+color-cursor-foreground	string			ColorCursorForeground
+color-cursor	string			ColorCursor
+color-cursor-use-default	boolean	true		ColorCursorUseDefault
+color-selection	string			ColorSelection
+color-selection-background	string			ColorSelectionBackground
+color-selection-use-default	boolean	true		ColorSelectionUseDefault
+color-bold	string			ColorBold
+color-bold-use-default	boolean	true		ColorBoldUseDefault
+color-palette	string	#000000;#aa0000;#00aa00;#aa5500;#0000aa;#aa00aa;#00aaaa;#aaaaaa;#555555;#ff5555;#55ff55;#ffff55;#5555ff;#ff55ff;#55ffff;#ffffff		ColorPalette
+color-bold-is-bright	boolean	true		ColorBoldIsBright
+color-use-theme	boolean	false		ColorUseTheme
+command-login-shell	boolean	false		CommandLoginShell
+command-update-records	boolean	false		CommandUpdateRecords
+run-custom-command	boolean	false		RunCustomCommand
+custom-command	string			CustomCommand
+dropdown-animation-time	uint	0	0:500	DropdownAnimationTime
+dropdown-keep-open-default	boolean	false		DropdownKeepOpenDefault
+dropdown-keep-above	boolean	true		DropdownKeepAbove
+dropdown-toggle-focus	boolean	false		DropdownToggleFocus
+dropdown-status-icon	boolean	true		DropdownStatusIcon
+dropdown-width	uint	80	10:100	DropdownWidth
+dropdown-height	uint	50	10:100	DropdownHeight
+dropdown-opacity	uint	100	0:100	DropdownOpacity
+dropdown-position	uint	50	0:100	DropdownPosition
+dropdown-position-vertical	uint	0	0:100	DropdownPositionVertical
+dropdown-move-to-active	boolean	true		DropdownMoveToActive
+dropdown-always-show-tabs	boolean	true		DropdownAlwaysShowTabs
+dropdown-show-borders	boolean	false		DropdownShowBorders
+dropdown-parameters-once	boolean	false		DropdownParametersOnce
+encoding	string	<null>		Encoding
+font-allow-bold	boolean	true		FontAllowBold
+font-name	string	Monospace 12		FontName
+font-use-system	boolean	false		FontUseSystem
+misc-always-show-tabs	boolean	false		MiscAlwaysShowTabs
+misc-bell	boolean	false		MiscBell
+misc-bell-urgent	boolean	false		MiscBellUrgent
+misc-borders-default	boolean	true		MiscBordersDefault
+misc-maximize-default	boolean	false		MiscMaximizeDefault
+misc-cursor-blinks	boolean	false		MiscCursorBlinks
+misc-cursor-shape	enum:TerminalCursorShape	TERMINAL_CURSOR_SHAPE_BLOCK	TERMINAL_CURSOR_SHAPE_BLOCK,TERMINAL_CURSOR_SHAPE_IBEAM,TERMINAL_CURSOR_SHAPE_UNDERLINE	MiscCursorShape
+misc-default-geometry	string	80x24		MiscDefaultGeometry
+misc-inherit-geometry	boolean	false		MiscInheritGeometry
+misc-menubar-default	boolean	true		MiscMenubarDefault
+misc-mouse-autohide	boolean	false		MiscMouseAutohide
+misc-mouse-wheel-zoom	boolean	true		MiscMouseWheelZoom
+misc-resize-on-zoom	boolean	true		MiscResizeOnZoom
+misc-toolbar-default	boolean	false		MiscToolbarDefault
+misc-confirm-close	boolean	true		MiscConfirmClose
+misc-cycle-tabs	boolean	true		MiscCycleTabs
+misc-tab-close-buttons	boolean	true		MiscTabCloseButtons
+misc-tab-close-middle-click	boolean	true		MiscTabCloseMiddleClick
+misc-tab-position	enum:GtkPositionType	GTK_POS_TOP	GTK_POS_LEFT,GTK_POS_RIGHT,GTK_POS_TOP,GTK_POS_BOTTOM	MiscTabPosition
+misc-highlight-urls	boolean	true		MiscHighlightUrls
+misc-middle-click-opens-uri	boolean	false		MiscMiddleClickOpensUri
+misc-copy-on-select	boolean	false		MiscCopyOnSelect
+misc-show-relaunch-dialog	boolean	true		MiscShowRelaunchDialog
+use-default-working-dir	boolean	false		UseDefaultWorkingDir
+default-working-dir	string			DefaultWorkingDir
+misc-rewrap-on-resize	boolean	true		MiscRewrapOnResize
+misc-slim-tabs	boolean	false		MiscSlimTabs
+misc-new-tab-adjacent	boolean	false		MiscNewTabAdjacent
+misc-search-dialog-opacity	uint	100	0:100	MiscSearchDialogOpacity
+misc-show-unsafe-paste-dialog	boolean	true		MiscShowUnsafePasteDialog
+misc-right-click-action	enum:TerminalRightClickAction	TERMINAL_RIGHT_CLICK_ACTION_CONTEXT_MENU	TERMINAL_RIGHT_CLICK_ACTION_CONTEXT_MENU,TERMINAL_RIGHT_CLICK_ACTION_PASTE_CLIPBOARD,TERMINAL_RIGHT_CLICK_ACTION_PASTE_SELECTION	MiscRightClickAction
+misc-hyperlinks-enabled	boolean	true		MiscHyperlinksEnabled
+scrolling-bar	enum:TerminalScrollbar	TERMINAL_SCROLLBAR_RIGHT	TERMINAL_SCROLLBAR_NONE,TERMINAL_SCROLLBAR_LEFT,TERMINAL_SCROLLBAR_RIGHT	ScrollingBar
+overlay-scrolling	boolean	false		OverlayScrolling
+scrolling-lines	uint	1000	0:1048576	ScrollingLines
+scrolling-on-output	boolean	false		ScrollingOnOutput
+scrolling-on-keystroke	boolean	true		ScrollingOnKeystroke
+scrolling-unlimited	boolean	false		ScrollingUnlimited
+kinetic-scrolling	boolean	false		KineticScrolling
+shortcuts-no-menukey	boolean	false		ShortcutsNoMenukey
+shortcuts-no-mnemonics	boolean	false		ShortcutsNoMnemonics
+title-initial	string	Terminal		TitleInitial
+title-mode	enum:TerminalTitle	TERMINAL_TITLE_APPEND	TERMINAL_TITLE_REPLACE,TERMINAL_TITLE_PREPEND,TERMINAL_TITLE_APPEND,TERMINAL_TITLE_HIDE,TERMINAL_TITLE_DEFAULT	TitleMode
+word-chars	string	-A-Za-z0-9,./?%&#:_=+@~		WordChars
+tab-activity-color	string	#aa0000		TabActivityColor
+tab-activity-timeout	uint	2	0:30	TabActivityTimeout
+text-blink-mode	enum:TerminalTextBlinkMode	TERMINAL_TEXT_BLINK_MODE_ALWAYS	TERMINAL_TEXT_BLINK_MODE_NEVER,TERMINAL_TEXT_BLINK_MODE_FOCUSED,TERMINAL_TEXT_BLINK_MODE_UNFOCUSED,TERMINAL_TEXT_BLINK_MODE_ALWAYS	TextBlinkMode
+cell-width-scale	double	1	1:2	CellWidthScale
+cell-height-scale	double	1	1:2	CellHeightScale
+enable-sixel	boolean	true		EnableSixel

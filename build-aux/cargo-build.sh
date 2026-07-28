@@ -9,6 +9,8 @@ output=$4
 profile=$5
 features=$6
 debug_symbols=$7
+locale_dir=$8
+export XFCE4_TERMINAL_LOCALE_DIR="$locale_dir"
 
 feature_args=
 if [ -n "$features" ]; then
