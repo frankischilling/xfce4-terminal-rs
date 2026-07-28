@@ -1,44 +1,46 @@
-Bug tracking system
-===================
+Issue and pull request workflow
+-------------------------------
 
-Xfce Terminal uses the Xfce bug tracking system at https://gitlab.xfce.org/apps/xfce4-terminal,
-hosted and maintained by the Xfce project.
+Work on the Rust port is tracked at
+https://github.com/frankischilling/xfce4-terminal-rs.
 
+Start with an issue in the Rust 1:1 parity milestone. Create a branch named
+agent/<short-description>, keep commits focused, and open a draft pull request.
+Each pull request should close one issue and leave both the installed C
+application and the Rust candidate buildable.
 
-Patches
-=======
-
-Please submit merge requests to the Xfce GitLab instance.
-Your code must comply with the coding style described below.
-
-Please base on work against the master branch of this package. You can always
-clone the Xfce Terminal repository from
-
-  https://gitlab.xfce.org/apps/xfce4-terminal
+The Xfce GitLab repository is retained as the upstream remote. Problems with
+the official C application still belong in the Xfce issue tracker.
 
 
-Feature requests
-================
+Testing
+-------
 
-Please file feature requests to the Xfce's GitLab
-(https://gitlab.xfce.org/apps/xfce4-terminal).
-Make sure that your feature request wasn't reported already before; requesting
-a feature several times won't increase the changed that it gets added!
+Test behavior through a public boundary and compare it with the frozen C
+reference. Run the narrow test while developing, then run the full Cargo and
+Meson checks documented in AGENTS.md.
+
+Update docs/PARITY.md when a proof is added. A behavior is not complete merely
+because its Rust code compiles.
 
 
-Coding Style
-============
+Coding style
+------------
 
- - GNU coding conventions, with GLib-like extensions, mostly the same
-   as GTK+.
- - Always expand tabs. This differs from the GNU suggestion, but is
-   necessary!
- - Don't follow the philosophy "If it works, it's right" that most
-   open source projects follow, instead Xfce Terminal's philosophy is
-   "It doesn't work unless it's right".
+The retained C source follows GNU conventions with GLib-style extensions and
+uses spaces instead of tabs.
+
+Rust code must pass rustfmt and Clippy with warnings denied. Keep GTK access on
+the main thread. Put unsafe native calls behind small wrappers that document
+ownership and lifetime assumptions.
+
+Write documentation in plain technical language. Describe the program as it
+works rather than narrating the latest diff.
 
 
 Release process
-===============
+---------------
 
-Refer to https://www.xfce.org/about/releasemodel
+The port does not publish releases until the parity contract is complete. The
+official Xfce release process is documented at
+https://www.xfce.org/about/releasemodel.

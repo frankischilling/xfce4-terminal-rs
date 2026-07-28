@@ -1,60 +1,65 @@
 [![License](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://gitlab.xfce.org/apps/xfce4-terminal/-/blob/master/COPYING)
 
-# xfce4-terminal
+# xfce4-terminal-rs
 
-Xfce Terminal is a lightweight and easy to use terminal emulator application
-with many advanced features including drop down, tabs, unlimited scrolling,
-full colors, fonts, transparent backgrounds, and more.
+This is an unofficial Rust port of Xfce Terminal. The goal is to replace the
+application code without changing how the terminal looks, starts commands,
+stores settings, talks over D-Bus, or integrates with X11 and Wayland.
 
-----
+The port is still in progress. The C program at commit
+`b5933b80d28ca35f873df8da2998e23be5f4e104` is the reference, and the installed
+binary remains that implementation until the parity suite passes.
 
-### Homepage
+Xfce Terminal uses GTK 3 and VTE. It supports normal and drop-down windows,
+tabs, search, configurable shortcuts, large scrollback buffers, Unicode,
+custom fonts and colors, transparent or image backgrounds, and command-line
+window construction.
 
-[Xfce4-terminal documentation](https://docs.xfce.org/apps/xfce4-terminal/start)
+## Building
 
-### Changelog
+Install Rust 1.85 or newer and the native dependencies listed in
+`meson.build`. Then run:
 
-See [NEWS](https://gitlab.xfce.org/apps/xfce4-terminal/-/blob/master/NEWS) for details on changes and fixes made in the current release.
+```sh
+meson setup build
+meson compile -C build
+meson test -C build --print-errorlogs
+```
 
-### Performance Issues
+The build currently produces two programs:
 
-Xfce Terminal is based on the Vte terminal widget library, just like
-gnome-terminal. Vte is probably not the fastest terminal emulation library on
-earth, but it's one of the best when it comes to Unicode support, and not to
-forget, it's actively developed.
+```text
+build/terminal/xfce4-terminal
+build/rust/xfce4-terminal-rs
+```
 
-### Source Code Repository
+The first is the C reference. The second is the Rust candidate and is not
+installed yet.
 
-[Xfce4-terminal source code](https://gitlab.xfce.org/apps/xfce4-terminal)
+Rust tests can also run directly:
 
-### Download a Release Tarball
+```sh
+cargo test --all-targets --all-features --locked
+```
 
-[Xfce4-terminal archive](https://archive.xfce.org/src/apps/xfce4-terminal)
-    or
-[Xfce4-terminal tags](https://gitlab.xfce.org/apps/xfce4-terminal/-/tags)
+## Documentation
 
-### Installation
+- `docs/PARITY.md` records the behavior that must match before cutover.
+- `docs/ARCHITECTURE.md` describes the build, Rust, and compatibility
+  boundaries.
+- `HACKING` explains the issue and pull request workflow.
+- The existing XML manual under `doc/` remains the source for the
+  `xfce4-terminal` man page.
 
-From source code repository: 
+The original Xfce documentation is available at
+[docs.xfce.org](https://docs.xfce.org/apps/xfce4-terminal/start). Upstream
+source and releases remain at
+[gitlab.xfce.org](https://gitlab.xfce.org/apps/xfce4-terminal).
 
-    % cd xfce4-terminal
-    % meson setup build
-    % meson compile -C build
-    % meson install -C build
+## Issues and license
 
-From release tarball:
+Report problems with this port in the
+[GitHub issue tracker](https://github.com/frankischilling/xfce4-terminal-rs/issues).
+Report problems with the official C application to the Xfce project.
 
-    % tar xf xfce4-terminal-<version>.tar.xz
-    % cd xfce4-terminal-<version>
-    % meson setup build
-    % meson compile -C build
-    % meson install -C build
-
-### Uninstallation
-
-    % ninja uninstall -C build
-
-### Reporting Bugs
-
-Visit the [reporting bugs](https://docs.xfce.org/apps/xfce4-terminal/bugs) page to view currently open bug reports and instructions on reporting new bugs or submitting bugfixes.
-
+The source is licensed under GPL-2.0-or-later. See `COPYING`.
