@@ -51,5 +51,12 @@ diff -u "$output_dir/reference.stderr" "$output_dir/candidate.stderr" \
   >"$output_dir/stderr.diff" || matched=false
 
 if [ "$matched" = false ]; then
+  echo "behavior differs: $output_dir" >&2
+  for difference in status.diff stdout.diff stderr.diff; do
+    if [ -s "$output_dir/$difference" ]; then
+      echo "$difference:" >&2
+      cat "$output_dir/$difference" >&2
+    fi
+  done
   exit 1
 fi
