@@ -19,6 +19,10 @@ widgets through composition and connect their signals on the GTK main thread.
 The port does not need to reproduce private C GObject type names because the
 application exports no widget ABI.
 
+`src/cli.rs` owns immediate output, launch specification parsing, and the
+shared C/Rust probe format. It does not create GTK objects. This keeps option
+parity testable without a display server.
+
 Unsafe calls belong in small FFI modules. Each wrapper states the ownership,
 thread, lifetime, error, and version assumptions that make the safe interface
 valid. Application code does not call raw VTE, Xfce, utempter, or BSD functions
@@ -29,4 +33,3 @@ directly.
 The installed executable name, desktop identity, D-Bus service, Xfconf schema,
 accelerator file, XDG paths, translations, themes, and man page remain
 unchanged. The Rust candidate uses a temporary name only during development.
-

@@ -36,6 +36,10 @@ build/rust/xfce4-terminal-rs
 The first is the C reference. The second is the Rust candidate and is not
 installed yet.
 
+For the covered C-locale cases, the candidate matches the frozen command-line
+help, version output, ANSI color table, and window or tab launch parser. It
+does not create terminal windows yet.
+
 Rust tests can also run directly:
 
 ```sh
@@ -47,6 +51,7 @@ cargo test --all-targets --all-features --locked
 - `docs/PARITY.md` records the behavior that must match before cutover.
 - `docs/ARCHITECTURE.md` describes the build, Rust, and compatibility
   boundaries.
+- `docs/CLI.md` documents command-line behavior and its differential probe.
 - `HACKING` explains the issue and pull request workflow.
 - The existing XML manual under `doc/` remains the source for the
   `xfce4-terminal` man page.

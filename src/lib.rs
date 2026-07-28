@@ -4,6 +4,9 @@
 //! developed. Public modules expose only behavior that can be tested without
 //! reaching into GTK widget internals.
 
+mod ffi;
+
+pub mod cli;
 pub mod reference;
 
 /// Returns the status text used by the development-only Rust candidate.

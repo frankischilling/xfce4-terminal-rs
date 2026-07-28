@@ -15,6 +15,10 @@ path = "src/lib.rs"
 name = "xfce4-terminal-rs"
 path = "src/main.rs"
 
+[[bin]]
+name = "xfce4-terminal-options-probe"
+path = "src/bin/options_probe.rs"
+
 [profile.release]
 lto = "thin"
 strip = true
