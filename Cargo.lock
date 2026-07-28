@@ -429,23 +429,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
-name = "libxfce4ui-sys"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4571f7ec7909d8b5afdc77215cc307b9e35e41746df6ec01774a921174abda8f"
-dependencies = [
- "cairo-sys-rs",
- "gdk-pixbuf-sys",
- "gdk-sys",
- "gio-sys",
- "glib-sys",
- "gobject-sys",
- "gtk-sys",
- "libc",
- "system-deps 7.0.8",
-]
-
-[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -878,7 +861,6 @@ dependencies = [
  "gtk",
  "gtk-layer-shell",
  "libc",
- "libxfce4ui-sys",
  "pango",
  "zoha-vte",
 ]
