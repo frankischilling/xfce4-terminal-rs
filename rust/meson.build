@@ -25,6 +25,10 @@ rust_feature_args = ['--no-default-features']
 if rust_features.length() > 0
   rust_feature_args += ['--features', rust_feature_list]
 endif
+rust_test_profile_args = []
+if rust_profile == 'release'
+  rust_test_profile_args += '--release'
+endif
 
 rust_target_dir = meson.current_build_dir() / 'cargo-target'
 rust_sources = files(
@@ -69,5 +73,6 @@ test(
     '--target-dir', rust_target_dir,
     '--all-targets',
     '--locked',
-  ] + rust_feature_args,
+  ] + rust_feature_args + rust_test_profile_args,
+  timeout: 300,
 )
