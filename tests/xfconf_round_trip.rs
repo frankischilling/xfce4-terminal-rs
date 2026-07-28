@@ -38,7 +38,7 @@ fn run_isolated_probe(with_migration: bool) {
              TitleInitial=Legacy title\n\
              ScrollingBar=TERMINAL_SCROLLBAR_LEFT\n",
         );
-        for index in 1..=16 {
+        for index in 1..=15 {
             terminalrc.push_str(&format!("ColorPalette{index}=#{index:06x}\n"));
         }
         fs::write(legacy_dir.join("terminalrc"), terminalrc).expect("write old terminalrc");

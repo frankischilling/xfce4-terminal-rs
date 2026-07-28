@@ -5,8 +5,18 @@ use xfce4_terminal::preferences::{PreferenceKind, PreferenceValue, Preferences, 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let preferences = Preferences::new("xfce4-terminal")?;
 
+    if std::env::args().nth(1).as_deref() == Some("--values") {
+        for definition in definitions() {
+            println!(
+                "{}\t{}",
+                definition.name,
+                display_value(&preferences.get(definition.name)?)
+            );
+        }
+        return Ok(());
+    }
+
     if std::env::var_os("XFCE4_TERMINAL_TEST_MIGRATION").is_some() {
-        assert_eq!(preferences.migrate_legacy()?, 6);
         assert_eq!(
             preferences.get("misc-bell")?,
             PreferenceValue::Boolean(false)
@@ -30,10 +40,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             preferences.get("color-palette")?,
             PreferenceValue::String(Some(
-                (1..=16)
+                (1..=15)
                     .map(|index| format!("#{index:06x}"))
                     .collect::<Vec<_>>()
                     .join(";")
+                    + ";"
             ))
         );
         return Ok(());
@@ -67,6 +78,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     Ok(())
+}
+
+fn display_value(value: &PreferenceValue) -> String {
+    match value {
+        PreferenceValue::Boolean(value) => value.to_string(),
+        PreferenceValue::String(Some(value)) | PreferenceValue::Enumeration(value) => value.clone(),
+        PreferenceValue::String(None) => "<null>".to_owned(),
+        PreferenceValue::Unsigned(value) => value.to_string(),
+        PreferenceValue::Double(value) => value.to_string(),
+    }
 }
 
 fn round_trip_value(

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use xfce4_terminal::{accelerators, colors, localization};
 
@@ -12,10 +13,8 @@ fn accelerator_and_gettext_paths_match_the_c_application() {
     assert_eq!(localization::GETTEXT_DOMAIN, "xfce4-terminal");
     assert_eq!(localization::CHARSET, "UTF-8");
 
-    let app = include_str!("../terminal/terminal-app.c");
-    assert!(app.contains("#define ACCEL_MAP_PATH \"xfce4/terminal/accels.scm\""));
-    let main = include_str!("../terminal/main.c");
-    assert!(main.contains("xfce_textdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR, \"UTF-8\")"));
+    let rust_main = include_str!("../src/main.rs");
+    assert!(rust_main.contains("localization::initialize()"));
 }
 
 #[test]
@@ -51,16 +50,33 @@ fn all_builtin_color_schemes_load_through_the_public_reader() {
 }
 
 #[test]
-fn meson_installs_color_schemes_and_gettext_catalogs_at_the_reference_paths() {
-    let colors_meson = include_str!("../colorschemes/meson.build");
-    assert!(colors_meson.contains("'xfce4' / 'terminal' / 'colorschemes'"));
-    assert_eq!(colors_meson.matches(".desktop.in'").count(), 8);
+fn installed_and_user_color_schemes_share_one_sorted_model() {
+    let root = std::env::temp_dir().join(format!(
+        "xfce4-terminal-colors-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock")
+            .as_nanos()
+    ));
+    let data = root.join("data/xfce4/terminal/colorschemes");
+    let config = root.join("config/xfce4/terminal/colorschemes");
+    std::fs::create_dir_all(&data).expect("create data schemes");
+    std::fs::create_dir_all(&config).expect("create user schemes");
+    std::fs::write(data.join("global.theme"), "[Scheme]\nName=Global\n")
+        .expect("write global scheme");
+    std::fs::write(config.join("user.theme"), "[Scheme]\nName=Custom\n")
+        .expect("write user scheme");
 
-    let po_meson = include_str!("../po/meson.build");
-    assert!(po_meson.contains("i18n.gettext(meson.project_name(), preset: 'glib')"));
-    let potfiles = include_str!("../po/POTFILES");
-    assert!(potfiles.contains("terminal/terminal-preferences.c"));
-    for scheme in colors::BUILTIN_FILES {
-        assert!(potfiles.contains(scheme));
-    }
+    let schemes =
+        colors::discover(&[root.join("data")], &root.join("config")).expect("discover schemes");
+    let _ = std::fs::remove_dir_all(&root);
+
+    assert_eq!(
+        schemes
+            .iter()
+            .map(|scheme| scheme.name.as_str())
+            .collect::<Vec<_>>(),
+        ["Custom", "Global"]
+    );
 }

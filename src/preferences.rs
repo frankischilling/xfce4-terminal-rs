@@ -72,9 +72,11 @@ impl std::error::Error for PreferenceError {}
 impl Preferences {
     /// Opens a channel after initializing libxfconf for this instance.
     pub fn new(channel_name: &str) -> Result<Self, PreferenceError> {
-        xfconf::Session::new(channel_name)
+        let preferences = xfconf::Session::new(channel_name)
             .map(|session| Self { session })
-            .map_err(PreferenceError)
+            .map_err(PreferenceError)?;
+        preferences.migrate_legacy()?;
+        Ok(preferences)
     }
 
     /// Reads a value from Xfconf or returns the frozen C default.
@@ -84,24 +86,43 @@ impl Preferences {
             return Ok(default_value(definition));
         }
 
+        let string_value = if self.session.is_string(name).map_err(PreferenceError)? {
+            Some(self.session.get_string(name).map_err(PreferenceError)?)
+        } else {
+            None
+        };
         match &definition.kind {
-            PreferenceKind::Boolean => self.session.get_bool(name).map(PreferenceValue::Boolean),
-            PreferenceKind::String => self
-                .session
-                .get_string(name)
-                .map(|value| PreferenceValue::String(Some(value))),
-            PreferenceKind::Unsigned { .. } => {
-                self.session.get_uint(name).map(PreferenceValue::Unsigned)
-            }
-            PreferenceKind::Double { .. } => {
-                self.session.get_double(name).map(PreferenceValue::Double)
-            }
-            PreferenceKind::Enumeration { .. } => self
-                .session
-                .get_string(name)
-                .map(PreferenceValue::Enumeration),
+            PreferenceKind::Boolean => match string_value {
+                Some(value) => Ok(PreferenceValue::Boolean(value != "FALSE")),
+                None => self
+                    .session
+                    .get_bool(name)
+                    .map(PreferenceValue::Boolean)
+                    .map_err(PreferenceError),
+            },
+            PreferenceKind::String => Ok(PreferenceValue::String(string_value)),
+            PreferenceKind::Unsigned { .. } => match string_value {
+                Some(value) => Ok(PreferenceValue::Unsigned(libc::strtoul_u32(&value))),
+                None => self
+                    .session
+                    .get_uint(name)
+                    .map(PreferenceValue::Unsigned)
+                    .map_err(PreferenceError),
+            },
+            PreferenceKind::Double { .. } => match string_value {
+                Some(value) => Ok(PreferenceValue::Double(libc::terminalrc_double(&value))),
+                None => self
+                    .session
+                    .get_double(name)
+                    .map(PreferenceValue::Double)
+                    .map_err(PreferenceError),
+            },
+            PreferenceKind::Enumeration { .. } => string_value
+                .map(|value| legacy_value(definition, &value))
+                .ok_or_else(|| {
+                    PreferenceError(format!("Xfconf property {name:?} is not a string enum"))
+                }),
         }
-        .map_err(PreferenceError)
     }
 
     /// Validates and writes one value using the C application's storage type.
@@ -164,18 +185,24 @@ impl Preferences {
         }
 
         if migrate_palette {
-            let colors = (1..=16)
-                .map(|index| {
-                    key_file
-                        .string("Configuration", &format!("ColorPalette{index}"))
-                        .map(|value| value.to_string())
-                })
-                .collect::<Result<Vec<_>, _>>();
-            if let Ok(colors) = colors {
-                self.set(
-                    "color-palette",
-                    PreferenceValue::String(Some(colors.join(";"))),
-                )?;
+            let mut palette = String::new();
+            let mut complete = true;
+            for index in 1..=16 {
+                match key_file.string("Configuration", &format!("ColorPalette{index}")) {
+                    Ok(value) => {
+                        palette.push_str(value.as_str());
+                        if index != 16 {
+                            palette.push(';');
+                        }
+                    }
+                    Err(_) => {
+                        complete = index == 16;
+                        break;
+                    }
+                }
+            }
+            if complete {
+                self.set("color-palette", PreferenceValue::String(Some(palette)))?;
                 migrated += 1;
             }
         }

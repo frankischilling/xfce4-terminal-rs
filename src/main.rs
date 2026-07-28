@@ -2,6 +2,8 @@ fn main() {
     use std::io::Write;
     use xfce4_terminal::cli::{ImmediateAction, parse_immediate};
 
+    xfce4_terminal::localization::initialize().expect("initialize the fixed gettext configuration");
+
     let os_arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
     let display_arguments = os_arguments
         .iter()

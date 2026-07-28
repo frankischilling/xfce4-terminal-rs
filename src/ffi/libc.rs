@@ -17,6 +17,11 @@ pub(crate) fn strtol_i32(value: &str) -> i32 {
 }
 
 /// Parses an unsigned decimal with the legacy terminalrc conversion rules.
+///
+/// The temporary `CString` owns the input for the entire `strtoul` call.
+/// libc does not retain the borrowed pointer. The wrapper ignores the end
+/// pointer and `errno`, then applies the same native-to-`u32` cast as the C
+/// preference transform.
 pub(crate) fn strtoul_u32(value: &str) -> u32 {
     let value = CString::new(value).unwrap_or_default();
     unsafe { ::libc::strtoul(value.as_ptr(), std::ptr::null_mut(), 10) as u32 }

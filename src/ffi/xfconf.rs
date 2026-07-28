@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::rc::Rc;
 
-use glib::translate::from_glib_full;
+use glib::translate::{IntoGlib, from_glib_full};
 
 #[repr(C)]
 struct XfconfChannel {
@@ -21,6 +21,11 @@ unsafe extern "C" {
     fn xfconf_channel_has_property(
         channel: *mut XfconfChannel,
         property: *const c_char,
+    ) -> glib::ffi::gboolean;
+    fn xfconf_channel_get_property(
+        channel: *mut XfconfChannel,
+        property: *const c_char,
+        value: *mut glib::gobject_ffi::GValue,
     ) -> glib::ffi::gboolean;
     fn xfconf_channel_get_string(
         channel: *mut XfconfChannel,
@@ -126,19 +131,47 @@ impl Session {
         })
     }
 
+    pub(crate) fn is_string(&self, property: &str) -> Result<bool, String> {
+        let property = property_name(property)?;
+        let mut value = std::mem::MaybeUninit::<glib::gobject_ffi::GValue>::zeroed();
+        let found = unsafe {
+            xfconf_channel_get_property(
+                self.channel.as_ptr(),
+                property.as_ptr(),
+                value.as_mut_ptr(),
+            )
+        };
+        if found == glib::ffi::GFALSE {
+            return Ok(false);
+        }
+
+        // Xfconf initializes the GValue and transfers its contents to the
+        // caller. Read the type before balancing that ownership with
+        // g_value_unset; no pointer from the value escapes this wrapper.
+        let mut value = unsafe { value.assume_init() };
+        let is_string = value.g_type == glib::Type::STRING.into_glib();
+        unsafe { glib::gobject_ffi::g_value_unset(&mut value) };
+        Ok(is_string)
+    }
+
     pub(crate) fn get_string(&self, property: &str) -> Result<String, String> {
+        self.try_get_string(property)?
+            .ok_or_else(|| format!("Xfconf returned no string for {property:?}"))
+    }
+
+    pub(crate) fn try_get_string(&self, property: &str) -> Result<Option<String>, String> {
         let property = property_name(property)?;
         let value = unsafe {
             xfconf_channel_get_string(self.channel.as_ptr(), property.as_ptr(), std::ptr::null())
         };
         if value.is_null() {
-            return Err(format!("Xfconf returned no string for {property:?}"));
+            return Ok(None);
         }
         let result = unsafe { CStr::from_ptr(value) }
             .to_string_lossy()
             .into_owned();
         unsafe { glib::ffi::g_free(value.cast()) };
-        Ok(result)
+        Ok(Some(result))
     }
 
     pub(crate) fn set_string(&self, property: &str, value: &str) -> Result<(), String> {
@@ -231,6 +264,9 @@ fn set_result(result: glib::ffi::gboolean, property: &CStr) -> Result<(), String
 }
 
 fn channel_names() -> Vec<Vec<u8>> {
+    // xfconf_list_channels returns a transfer-full, null-terminated string
+    // vector. Each pointer remains valid until g_strfreev releases the
+    // strings and vector, so every channel name is copied into Rust first.
     let channels = unsafe { xfconf_list_channels() };
     if channels.is_null() {
         return Vec::new();

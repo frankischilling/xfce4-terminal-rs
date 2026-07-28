@@ -42,13 +42,33 @@ pub fn load_directory(directory: &Path, suffix: &str) -> Result<Vec<ColorScheme>
     Ok(schemes)
 }
 
+/// Loads installed schemes and user schemes, then sorts the combined list.
+pub fn discover(
+    data_directories: &[PathBuf],
+    config_home: &Path,
+) -> Result<Vec<ColorScheme>, String> {
+    let relative = Path::new("xfce4/terminal/colorschemes");
+    let mut schemes = Vec::new();
+    for directory in data_directories
+        .iter()
+        .map(|directory| directory.join(relative))
+        .chain(std::iter::once(config_home.join(relative)))
+    {
+        if directory.is_dir() {
+            schemes.extend(load_directory(&directory, ".theme")?);
+        }
+    }
+    schemes.sort_by(|left, right| left.name.cmp(&right.name));
+    Ok(schemes)
+}
+
 fn load_file(path: PathBuf) -> Result<ColorScheme, String> {
     let key_file = glib::KeyFile::new();
     key_file
         .load_from_file(&path, glib::KeyFileFlags::NONE)
         .map_err(|error| error.to_string())?;
     let name = key_file
-        .string("Scheme", "Name")
+        .locale_string("Scheme", "Name", None)
         .map_err(|error| error.to_string())?
         .to_string();
     let mut values = BTreeMap::new();
