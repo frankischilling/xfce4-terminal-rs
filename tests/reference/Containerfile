@@ -7,10 +7,15 @@ RUN printf '%s\n' \
       'Components: main universe' \
       'Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg' \
       > /etc/apt/sources.list.d/ubuntu.sources \
+    && printf '%s\n' 'Acquire::https::Verify-Peer "false";' \
+      > /etc/apt/apt.conf.d/99snapshot-bootstrap \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+      ca-certificates \
+    && rm /etc/apt/apt.conf.d/99snapshot-bootstrap \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
       build-essential \
-      ca-certificates \
       gettext \
       git \
       libgtk-3-dev \
