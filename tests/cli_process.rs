@@ -120,4 +120,12 @@ fn non_utf8_options_report_reference_bytes_without_panicking() {
     )
     .unwrap();
     assert_eq!(delimited, vec![xfce4_terminal::cli::WindowSpec::default()]);
+
+    let literal_marker =
+        parse_launch_os(&[OsString::from("--title=__XFCE_RAW_BFF_")], false).unwrap();
+    assert!(
+        format_launch_specs_bytes(&literal_marker)
+            .windows(b"|title=15:__XFCE_RAW_BFF_".len())
+            .any(|window| window == b"|title=15:__XFCE_RAW_BFF_")
+    );
 }

@@ -117,36 +117,48 @@ impl Default for WindowSpec {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(Vec<u8>);
+pub struct ParseError {
+    message: Vec<u8>,
+    unknown_short: Option<(Vec<u8>, usize)>,
+}
 
 impl ParseError {
     fn new(message: impl Into<String>) -> Self {
-        Self(message.into().into_bytes())
+        Self {
+            message: message.into().into_bytes(),
+            unknown_short: None,
+        }
     }
 
     fn unknown_argument(argument: &[u8]) -> Self {
         let mut message = b"Unknown option \"".to_vec();
         message.extend_from_slice(argument);
         message.push(b'"');
-        Self(message)
+        Self {
+            message,
+            unknown_short: None,
+        }
     }
 
-    fn unknown_short(option: u8) -> Self {
+    fn unknown_short(argument: &[u8], position: usize) -> Self {
         let mut message = b"Unknown option \"-".to_vec();
-        message.push(option);
+        message.push(argument[position]);
         message.push(b'"');
-        Self(message)
+        Self {
+            message,
+            unknown_short: Some((argument.to_vec(), position)),
+        }
     }
 
     /// Returns the error text as the original command-line bytes.
     pub fn as_bytes(&self) -> &[u8] {
-        &self.0
+        &self.message
     }
 }
 
 impl fmt::Display for ParseError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&String::from_utf8_lossy(&self.0))
+        formatter.write_str(&String::from_utf8_lossy(&self.message))
     }
 }
 
@@ -783,7 +795,7 @@ pub fn parse_launch(
                         return Err(if position == 1 {
                             ParseError::unknown_argument(argument.as_bytes())
                         } else {
-                            ParseError::unknown_short(argument.as_bytes()[position])
+                            ParseError::unknown_short(argument.as_bytes(), position)
                         });
                     }
                 }
@@ -808,33 +820,12 @@ pub fn parse_launch(
 }
 
 #[cfg(unix)]
-fn contains_bytes(haystack: &[u8], needle: &[u8]) -> bool {
-    haystack
-        .windows(needle.len())
-        .any(|window| window == needle)
-}
+const RAW_PREFIX: &[u8] = b"__XFCE_RAW_";
 
 #[cfg(unix)]
-fn marker_prefix(args: &[OsString]) -> String {
-    use std::os::unix::ffi::OsStrExt;
-
-    for nonce in 0_u32.. {
-        let prefix = format!("__XFCE_RAW_{nonce}_");
-        if args
-            .iter()
-            .all(|argument| !contains_bytes(argument.as_bytes(), prefix.as_bytes()))
-        {
-            return prefix;
-        }
-    }
-    unreachable!("the finite argument vector cannot contain every marker prefix")
-}
-
-#[cfg(unix)]
-fn encode_argument(bytes: &[u8], prefix: &str) -> String {
+fn encode_utf8_segment(bytes: &[u8], encoded: &mut String) {
     use std::fmt::Write;
 
-    let mut encoded = String::new();
     let mut offset = 0;
     while offset < bytes.len() {
         match std::str::from_utf8(&bytes[offset..]) {
@@ -850,11 +841,30 @@ fn encode_argument(bytes: &[u8], prefix: &str) -> String {
                 );
                 let invalid_len = error.error_len().unwrap_or_else(|| bytes.len() - valid_end);
                 for byte in &bytes[valid_end..valid_end + invalid_len] {
-                    write!(encoded, "{prefix}{byte:02X}_").unwrap();
+                    write!(encoded, "__XFCE_RAW_B{byte:02X}_").unwrap();
                 }
                 offset = valid_end + invalid_len;
             }
         }
+    }
+}
+
+#[cfg(unix)]
+fn encode_argument(bytes: &[u8]) -> String {
+    let mut encoded = String::new();
+    let mut offset = 0;
+    while offset < bytes.len() {
+        let next_prefix = bytes[offset..]
+            .windows(RAW_PREFIX.len())
+            .position(|window| window == RAW_PREFIX)
+            .map(|position| offset + position)
+            .unwrap_or(bytes.len());
+        encode_utf8_segment(&bytes[offset..next_prefix], &mut encoded);
+        if next_prefix == bytes.len() {
+            break;
+        }
+        encoded.push_str("__XFCE_RAW_P_");
+        offset = next_prefix + RAW_PREFIX.len();
     }
     encoded
 }
@@ -869,18 +879,24 @@ fn hex_value(byte: u8) -> Option<u8> {
 }
 
 #[cfg(unix)]
-fn decode_markers(bytes: &[u8], prefix: &[u8]) -> Vec<u8> {
+fn decode_markers(bytes: &[u8]) -> Vec<u8> {
     let mut decoded = Vec::with_capacity(bytes.len());
     let mut offset = 0;
     while offset < bytes.len() {
-        let marker_end = offset + prefix.len() + 3;
+        if bytes[offset..].starts_with(b"__XFCE_RAW_P_") {
+            decoded.extend_from_slice(RAW_PREFIX);
+            offset += b"__XFCE_RAW_P_".len();
+            continue;
+        }
+
+        let marker_end = offset + b"__XFCE_RAW_B".len() + 3;
         if marker_end <= bytes.len()
-            && bytes[offset..].starts_with(prefix)
+            && bytes[offset..].starts_with(b"__XFCE_RAW_B")
             && bytes[marker_end - 1] == b'_'
         {
             let digits = (
-                hex_value(bytes[offset + prefix.len()]),
-                hex_value(bytes[offset + prefix.len() + 1]),
+                hex_value(bytes[offset + b"__XFCE_RAW_B".len()]),
+                hex_value(bytes[offset + b"__XFCE_RAW_B".len() + 1]),
             );
             if let (Some(high), Some(low)) = digits {
                 decoded.push((high << 4) | low);
@@ -895,43 +911,53 @@ fn decode_markers(bytes: &[u8], prefix: &[u8]) -> Vec<u8> {
 }
 
 #[cfg(unix)]
-fn decode_os_string(value: &mut OsString, prefix: &[u8]) {
+fn decode_os_string(value: &mut OsString) {
     use std::os::unix::ffi::{OsStrExt, OsStringExt};
 
-    *value = OsString::from_vec(decode_markers(value.as_bytes(), prefix));
+    *value = OsString::from_vec(decode_markers(value.as_bytes()));
 }
 
 #[cfg(unix)]
-fn decode_option(value: &mut Option<OsString>, prefix: &[u8]) {
+fn decode_option(value: &mut Option<OsString>) {
     if let Some(value) = value {
-        decode_os_string(value, prefix);
+        decode_os_string(value);
     }
 }
 
 #[cfg(unix)]
-fn decode_windows(windows: &mut [WindowSpec], prefix: &[u8]) {
+fn decode_windows(windows: &mut [WindowSpec]) {
     for window in windows {
-        decode_option(&mut window.display, prefix);
-        decode_option(&mut window.geometry, prefix);
-        decode_option(&mut window.role, prefix);
-        decode_option(&mut window.startup_id, prefix);
-        decode_option(&mut window.sm_client_id, prefix);
-        decode_option(&mut window.icon, prefix);
-        decode_option(&mut window.font, prefix);
+        decode_option(&mut window.display);
+        decode_option(&mut window.geometry);
+        decode_option(&mut window.role);
+        decode_option(&mut window.startup_id);
+        decode_option(&mut window.sm_client_id);
+        decode_option(&mut window.icon);
+        decode_option(&mut window.font);
         for tab in &mut window.tabs {
             if let Some(command) = &mut tab.command {
                 for argument in command {
-                    decode_os_string(argument, prefix);
+                    decode_os_string(argument);
                 }
             }
-            decode_option(&mut tab.directory, prefix);
-            decode_option(&mut tab.title, prefix);
-            decode_option(&mut tab.initial_title, prefix);
-            decode_option(&mut tab.color_text, prefix);
-            decode_option(&mut tab.color_bg, prefix);
-            decode_option(&mut tab.color_title, prefix);
+            decode_option(&mut tab.directory);
+            decode_option(&mut tab.title);
+            decode_option(&mut tab.initial_title);
+            decode_option(&mut tab.color_text);
+            decode_option(&mut tab.color_bg);
+            decode_option(&mut tab.color_title);
         }
     }
+}
+
+#[cfg(unix)]
+fn decode_error(mut error: ParseError) -> ParseError {
+    if let Some((argument, position)) = error.unknown_short.take() {
+        let argument = decode_markers(&argument);
+        return ParseError::unknown_short(&argument, position);
+    }
+    error.message = decode_markers(&error.message);
+    error
 }
 
 /// Parses process arguments without losing non-UTF-8 bytes on Unix.
@@ -942,69 +968,13 @@ pub fn parse_launch_os(
 ) -> Result<Vec<WindowSpec>, ParseError> {
     use std::os::unix::ffi::OsStrExt;
 
-    let prefix = marker_prefix(args);
-    let mut execute_index = None;
-    let mut command_started = false;
-    for (index, argument) in args.iter().enumerate() {
-        let bytes = argument.as_bytes();
-        if command_started {
-            continue;
-        }
-        if bytes == b"--" {
-            command_started = true;
-            continue;
-        }
-        if bytes == b"--execute" || short_group_is_execute(bytes) {
-            command_started = true;
-            execute_index = Some(index);
-            continue;
-        }
-        if argument.to_str().is_none() && bytes.starts_with(b"-") && !bytes.starts_with(b"--") {
-            let mut position = 1;
-            while position < bytes.len() {
-                match bytes[position] {
-                    b'H' => position += 1,
-                    b'x' => {
-                        if position + 1 != bytes.len() || index + 1 >= args.len() {
-                            return Err(ParseError::new(
-                                "Option \"--execute/-x\" requires specifying the command to run on the rest of the command line separated from \"--execute/-x\"",
-                            ));
-                        }
-                        command_started = true;
-                        execute_index = Some(index);
-                        break;
-                    }
-                    b'e' | b'T' | b'I' => break,
-                    option => {
-                        return Err(if position == 1 {
-                            ParseError::unknown_argument(bytes)
-                        } else {
-                            ParseError::unknown_short(option)
-                        });
-                    }
-                }
-            }
-        }
-    }
-
     let encoded = args
         .iter()
-        .map(|argument| encode_argument(argument.as_bytes(), &prefix))
+        .map(|argument| encode_argument(argument.as_bytes()))
         .collect::<Vec<_>>();
     let arguments = encoded.iter().map(String::as_str).collect::<Vec<_>>();
-    let mut windows = parse_launch(&arguments, can_reuse_window)
-        .map_err(|error| ParseError(decode_markers(error.as_bytes(), prefix.as_bytes())))?;
-    decode_windows(&mut windows, prefix.as_bytes());
-
-    if let Some(index) = execute_index {
-        windows
-            .last_mut()
-            .expect("the parser always creates a window")
-            .tabs
-            .last_mut()
-            .expect("the parser always creates a tab")
-            .command = Some(args[index + 1..].to_vec());
-    }
+    let mut windows = parse_launch(&arguments, can_reuse_window).map_err(decode_error)?;
+    decode_windows(&mut windows);
 
     Ok(windows)
 }
