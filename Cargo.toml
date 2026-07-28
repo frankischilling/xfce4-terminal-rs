@@ -1,0 +1,37 @@
+[package]
+name = "xfce4-terminal"
+version = "1.2.0-dev"
+edition = "2024"
+rust-version = "1.85"
+license = "GPL-2.0-or-later"
+repository = "https://github.com/frankischilling/xfce4-terminal-rs"
+publish = false
+
+[lib]
+name = "xfce4_terminal"
+path = "src/lib.rs"
+
+[[bin]]
+name = "xfce4-terminal-rs"
+path = "src/main.rs"
+
+[profile.release]
+lto = "thin"
+strip = true
+
+[features]
+default = ["x11", "wayland", "layer-shell", "utempter"]
+x11 = []
+wayland = []
+layer-shell = ["dep:gtk-layer-shell"]
+utempter = []
+
+[dependencies]
+gdk = "0.18"
+gio = "0.18"
+glib = "0.18"
+gtk = { version = "=0.18.2", features = ["v3_24"] }
+gtk-layer-shell = { version = "=0.8.2", optional = true }
+libc = "0.2"
+pango = "0.18"
+zoha-vte = { version = "=0.6.0", features = ["v0_50"] }
