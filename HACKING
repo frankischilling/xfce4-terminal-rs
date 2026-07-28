@@ -4,10 +4,10 @@ Issue and pull request workflow
 Work on the Rust port is tracked at
 https://github.com/frankischilling/xfce4-terminal-rs.
 
-Start with an issue in the Rust 1:1 parity milestone. Create a branch named
-agent/<short-description>, keep commits focused, and open a draft pull request.
-Each pull request should close one issue and leave both the installed C
-application and the Rust candidate buildable.
+Start with an issue in the Rust 1:1 parity milestone. Use a short, descriptive
+branch name, keep commits focused, and open a draft pull request. Each pull
+request should close one issue and leave both the installed C application and
+the Rust candidate buildable.
 
 The Xfce GitLab repository is retained as the upstream remote. Problems with
 the official C application still belong in the Xfce issue tracker.
