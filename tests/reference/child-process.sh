@@ -39,6 +39,12 @@ home=$test_root/home
 config=$test_root/config
 cache=$test_root/cache
 toplevel=$test_root/toplevel.tsv
+mkdir -p "$home" "$cache"
+
+# A probe that stops making progress would otherwise hold the whole job until
+# its own limit ran out, with nothing in the log to say which run stalled. A run
+# takes well under a second once the caches a terminal widget needs are warm.
+limit=120
 
 # Both probes are started from the same directory and through the same wrapper,
 # so the variables a shell adds for them, such as PWD and SHLVL, agree.
@@ -48,10 +54,13 @@ run_probe()
   report=$2
   shift 2
   # A fresh configuration directory, together with the session bus each probe
-  # gets of its own, gives every run an empty preference channel.
-  rm -rf "$config" "$cache"
-  mkdir -p "$home" "$config" "$cache"
-  env -i \
+  # gets of its own, gives every run an empty preference channel. The cache
+  # directory is kept, because nothing under test is stored there and a cold one
+  # makes every run rebuild the font caches that realizing a terminal needs.
+  rm -rf "$config"
+  mkdir -p "$config"
+  timeout "$limit" \
+    env -i \
     PATH="$PATH" \
     HOME="$home" \
     XDG_CONFIG_HOME="$config" \
@@ -77,8 +86,17 @@ compare()
 {
   name=$1
   shift
-  run_probe "$reference_probe" "$test_root/$name-reference.raw" "$@"
-  run_probe "$candidate_probe" "$test_root/$name-candidate.raw" "$@"
+  # Naming the arrangement before it runs is what tells a reader of the log
+  # which of them a failure or a timeout belongs to.
+  echo "comparing the $name arrangement"
+  if ! run_probe "$reference_probe" "$test_root/$name-reference.raw" "$@"; then
+    echo "$0: the frozen probe failed or ran past $limit seconds ($name)" >&2
+    exit 1
+  fi
+  if ! run_probe "$candidate_probe" "$test_root/$name-candidate.raw" "$@"; then
+    echo "$0: the candidate failed or ran past $limit seconds ($name)" >&2
+    exit 1
+  fi
   normalize "$test_root/$name-reference.raw" > "$test_root/$name-reference.tsv"
   normalize "$test_root/$name-candidate.raw" > "$test_root/$name-candidate.tsv"
   diff -u "$test_root/$name-reference.tsv" "$test_root/$name-candidate.tsv"
