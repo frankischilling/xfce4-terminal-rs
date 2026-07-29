@@ -22,7 +22,7 @@ mkdir -p \
   "$data_home/$relative/directory.theme" \
   "$data_fallback/$relative" \
   "$config_home/$relative" \
-  "$config_fallback"
+  "$config_fallback/$relative"
 printf '%s\n' '[Scheme]' 'Name=Primary' > "$data_home/$relative/shared.theme"
 printf '%s\n' '[Scheme]' 'Name=Shadowed' > "$data_fallback/$relative/shared.theme"
 printf '%s\n' '[Scheme]' 'Name=Fallback' > "$data_fallback/$relative/fallback.theme"
@@ -31,21 +31,40 @@ printf '%s\n' '[Scheme]' 'Name=Symlink primary' > "$test_root/symlink-source.the
 ln -s "$test_root/symlink-source.theme" "$data_home/$relative/symlink.theme"
 printf '%s\n' '[Scheme]' 'Name=Shadowed symlink' > "$data_fallback/$relative/symlink.theme"
 printf '%s\n' '[Scheme]' 'Name=User copy' > "$config_home/$relative/shared.theme"
+printf '%s\n' '[Scheme]' 'Name=Shadowed system copy' > "$config_fallback/$relative/shared.theme"
+printf '%s\n' '[Scheme]' 'Name=System config' > "$config_fallback/$relative/system.theme"
 
 run_probe()
 {
   output=$1
   probe=$2
+  probe_data_home=$3
+  probe_data_dirs=$4
+  probe_config_home=$5
+  probe_config_dirs=$6
+  filter_root=$7
   env \
-    XDG_DATA_HOME="$data_home" \
-    XDG_DATA_DIRS="$data_fallback" \
-    XDG_CONFIG_HOME="$config_home" \
-    XDG_CONFIG_DIRS="$config_fallback" \
+    XDG_DATA_HOME="$probe_data_home" \
+    XDG_DATA_DIRS="$probe_data_dirs" \
+    XDG_CONFIG_HOME="$probe_config_home" \
+    XDG_CONFIG_DIRS="$probe_config_dirs" \
     "$probe" \
-    | awk -F '\t' -v root="$test_root/" 'index($2, root) == 1' \
+    | awk -F '\t' -v root="$filter_root/" 'index($2, root) == 1' \
     | sort > "$output"
 }
 
-run_probe "$test_root/reference.tsv" "$reference_probe"
-run_probe "$test_root/candidate.tsv" "$candidate_probe"
+run_probe "$test_root/reference.tsv" "$reference_probe" \
+  "$data_home" "$data_fallback" "$config_home" "$config_fallback" "$test_root"
+run_probe "$test_root/candidate.tsv" "$candidate_probe" \
+  "$data_home" "$data_fallback" "$config_home" "$config_fallback" "$test_root"
 diff -u "$test_root/reference.tsv" "$test_root/candidate.tsv"
+
+shared_root=$test_root/shared-root
+mkdir -p "$shared_root/$relative"
+printf '%s\n' '[Scheme]' 'Name=Shared root' > "$shared_root/$relative/shared.theme"
+
+run_probe "$test_root/reference-shared.tsv" "$reference_probe" \
+  "$shared_root" "$data_fallback" "$shared_root" "$config_fallback" "$shared_root"
+run_probe "$test_root/candidate-shared.tsv" "$candidate_probe" \
+  "$shared_root" "$data_fallback" "$shared_root" "$config_fallback" "$shared_root"
+diff -u "$test_root/reference-shared.tsv" "$test_root/candidate-shared.tsv"
