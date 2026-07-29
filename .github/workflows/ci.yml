@@ -102,6 +102,7 @@ jobs:
           reference_preferences="$RUNNER_TEMP/xfce4-terminal-reference/build/preferences-probe"
           reference_links="$RUNNER_TEMP/xfce4-terminal-reference/build/link-probe"
           reference_child="$RUNNER_TEMP/xfce4-terminal-reference/build/child-probe"
+          reference_screen="$RUNNER_TEMP/xfce4-terminal-reference/build/screen-probe"
           reference_call_probe="$RUNNER_TEMP/xfce4-terminal-reference/build/application-call-probe.so"
           reference_shell_shim="$RUNNER_TEMP/xfce4-terminal-reference/build/login-shell-shim.so"
           candidate_options="./build/rust/cargo-target/release/xfce4-terminal-options-probe"
@@ -109,11 +110,13 @@ jobs:
           candidate_accelerators="./build/rust/cargo-target/release/xfce4-terminal-accelerator-probe"
           candidate_links="./build/rust/cargo-target/release/xfce4-terminal-link-probe"
           candidate_child="./build/rust/cargo-target/release/xfce4-terminal-child-probe"
+          candidate_screen="./build/rust/cargo-target/release/xfce4-terminal-screen-probe"
           test -x "$reference_binary"
           test -x "$reference_options"
           test -x "$reference_preferences"
           test -x "$reference_links"
           test -x "$reference_child"
+          test -x "$reference_screen"
           test -f "$reference_call_probe"
           test -f "$reference_shell_shim"
           test -x "$candidate_options"
@@ -121,6 +124,7 @@ jobs:
           test -x "$candidate_accelerators"
           test -x "$candidate_links"
           test -x "$candidate_child"
+          test -x "$candidate_screen"
 
           XFCE4_TERMINAL_REFERENCE_PREFERENCES_PROBE="$reference_preferences" \
             cargo test --test preferences_parity --locked
@@ -138,6 +142,9 @@ jobs:
             "$reference_child" \
             "$candidate_child" \
             "$reference_shell_shim"
+          tests/reference/screen-model.sh \
+            "$reference_screen" \
+            "$candidate_screen"
 
           mkdir "$RUNNER_TEMP/xfce4-terminal-candidate-install"
           DESTDIR="$RUNNER_TEMP/xfce4-terminal-candidate-install" \

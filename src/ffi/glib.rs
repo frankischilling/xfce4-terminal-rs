@@ -50,6 +50,38 @@ pub(crate) fn uri_host(uri: &str) -> Option<String> {
     Some(owned)
 }
 
+/// Returns the local file path `g_filename_from_uri` yields for a URI.
+///
+/// GLib rejects a URI that names a remote host, and also one whose path holds
+/// an invalid escape. Both cases return `None` here, which is how the screen
+/// leaves its stored working directory alone when conversion fails. The host
+/// alone is available from [`uri_host`] when a caller needs that intermediate
+/// result.
+///
+/// A URI containing NUL cannot be passed to GLib and is treated as absent.
+pub(crate) fn filename_from_uri(uri: &str) -> Option<String> {
+    let uri = CString::new(uri).ok()?;
+
+    // SAFETY: the URI stays alive and NUL terminated for the whole call. The
+    // returned file name is owned by this caller; the host is discarded.
+    let filename = unsafe {
+        glib::ffi::g_filename_from_uri(uri.as_ptr(), std::ptr::null_mut(), std::ptr::null_mut())
+    };
+    if filename.is_null() {
+        return None;
+    }
+
+    // SAFETY: a non-null file name is a NUL-terminated GLib allocation. The
+    // wrapper copies it before handing the allocation back to GLib.
+    let owned = unsafe { CStr::from_ptr(filename) }
+        .to_string_lossy()
+        .into_owned();
+    // SAFETY: the allocation is still owned here and is not used again.
+    unsafe { glib::ffi::g_free(filename.cast()) };
+
+    Some(owned)
+}
+
 /// Returns the last component of a path as `g_path_get_basename` reports it.
 ///
 /// This is not the base name Rust's path types report. GLib ignores trailing

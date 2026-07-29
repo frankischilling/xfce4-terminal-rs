@@ -1,0 +1,31 @@
+# Scenarios for the screen model that does not need a running child.
+#
+# title-parse	SESSION	DIRECTORY	VTE_TITLE_OR_-	TEMPLATE
+# title	CUSTOM_OR_-	INITIAL_OR_-	PREF_INITIAL	MODE	SESSION	DIRECTORY	VTE_TITLE_OR_-
+# paste	TEXT_WITH_\n_\r
+# cwd	STORED	URI_OR_-
+# colors	PALETTE	FG	BG	USE_THEME	VARY	CURSOR_DEFAULT	SELECTION_DEFAULT	BOLD_DEFAULT	BOLD_IS_BRIGHT	CUSTOM_FG	CUSTOM_BG	CURSOR_FG	CURSOR	SELECTION	SELECTION_BG	BOLD
+#
+# A field of - means a null pointer. Backslash escapes are \n \r \t and \\.
+title-parse	7	/home/frank/xfce-rust	vim	tab %# in %d (%D) - %w
+title-parse	1	-	-	%w
+title-parse	1	/tmp/dir	-	a%x%%d
+title-parse	1	-	-	done%
+title-parse	3	/var/tmp	ignored	Custom %d
+title	Custom %d	-	Terminal	TERMINAL_TITLE_REPLACE	3	/var/tmp	ignored
+title	-	-	Terminal	TERMINAL_TITLE_REPLACE	1	/tmp	shell
+title	-	Init %d	Terminal	TERMINAL_TITLE_REPLACE	1	/tmp	-
+title	-	-	Terminal	TERMINAL_TITLE_APPEND	1	/tmp	shell
+title	-	-	Terminal	TERMINAL_TITLE_PREPEND	1	/tmp	shell
+title	-	-	Terminal %#	TERMINAL_TITLE_HIDE	9	/tmp	shell
+title	-	-	Terminal	TERMINAL_TITLE_APPEND	1	/tmp	-
+paste	safe text
+paste	line1\nline2
+paste	line\r
+paste	-
+cwd	/stored	-
+cwd	/stored	file:///tmp/from-uri
+colors	#000000;#aa0000;#00aa00;#aa5500;#0000aa;#aa00aa;#00aaaa;#aaaaaa;#555555;#ff5555;#55ff55;#ffff55;#5555ff;#ff55ff;#55ffff;#ffffff	#ffffff	#000000	false	false	true	true	true	true	-	-	-	-	-	-	-
+colors	#000000;#bad	#ffffff	#000000	false	false	true	true	true	false	-	-	-	-	-	-	-
+colors	#000000;#aa0000;#00aa00;#aa5500;#0000aa;#aa00aa;#00aaaa;#aaaaaa;#555555;#ff5555;#55ff55;#ffff55;#5555ff;#ff55ff;#55ffff;#ffffff	#ffffff	#000000	false	false	true	true	true	true	#112233	#445566	-	-	-	-	-
+colors	#000000;#aa0000;#00aa00;#aa5500;#0000aa;#aa00aa;#00aaaa;#aaaaaa;#555555;#ff5555;#55ff55;#ffff55;#5555ff;#ff55ff;#55ffff;#ffffff	#ffffff	#000000	false	false	false	false	false	true	-	-	#010203	#040506	#070809	#0a0b0c	#0d0e0f

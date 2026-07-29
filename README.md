@@ -55,6 +55,8 @@ cargo test --all-targets --all-features --locked
 - `docs/PREFERENCES.md` documents Xfconf storage, migration, and preference
   proof.
 - `docs/LINKS.md` documents the link patterns and what a match implies.
+- `docs/SCREEN.md` documents titles, working directories, paste safety, and
+  the colors handed to VTE.
 - `HACKING` explains the issue and pull request workflow.
 - The existing XML manual under `doc/` remains the source for the
   `xfce4-terminal` man page.
