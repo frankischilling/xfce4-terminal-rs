@@ -379,6 +379,25 @@ static COMPILED: LazyLock<Vec<Result<pcre2::Pattern, i32>>> = LazyLock::new(|| {
         .collect()
 });
 
+/// Returns the registered patterns in the form the parity comparison compares.
+///
+/// The frozen reference writes the same text, and
+/// `tests/reference/link-contract.tsv` holds what it wrote, so the pattern text
+/// and the table order can be checked without a reference build.
+pub fn pattern_contract() -> String {
+    PATTERNS
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| {
+            format!(
+                "pattern\t{index}\t{}\t{}\n",
+                kind_name(Some(entry.kind)),
+                entry.pattern
+            )
+        })
+        .collect()
+}
+
 /// Returns the name the parity comparison prints for a classification.
 pub fn kind_name(kind: Option<LinkKind>) -> &'static str {
     match kind {

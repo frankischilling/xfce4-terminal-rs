@@ -75,6 +75,7 @@ rust_sources = files(
   '../tests/reference/application-calls.sh',
   '../tests/reference/container-build.sh',
   '../tests/reference/differential.sh',
+  '../tests/reference/link-contract.tsv',
   '../tests/reference/link-fixtures.txt',
   '../tests/reference/link-matching.sh',
   '../tests/reference/link-probe.c',

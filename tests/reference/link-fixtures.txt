@@ -12,9 +12,22 @@ http://user@example.com/
 http://user:secret@example.com/
 http://1.2.3.4/
 http://1.2.3.4567/
+# The address fragment bounds each octet, so one above the range fails.
+http://255.255.255.255/
+http://256.1.1.1/
 http://[::1]/
 http://[dead:beef::1.2.3.4]/
 http://[::]/
+http://[1:2:3:4:5:6:7:8]/
+http://[1:2::3]/
+http://[1:2:3::]/
+http://[::ffff:1.2.3.4]/
+http://example.com:65535/
+http://example.com:65536/
+http://user:@example.com/
+WWW.EXAMPLE.COM
+http://example.com/a[b]c
+http://example.com/a[bc
 news://news.example.com/comp.lang.c
 telnet://example.com
 nntp://news.example.com
@@ -51,12 +64,23 @@ file://elsewhere.invalid/tmp/%zz
 file://elsewhere.invalid/tmp/50%discount
 file://localhost/pub/doc%2Fa
 file:///pub/doc%2Fa
+file:///
+file://host/
+# A host GLib will not accept.
+file://ho_st/tmp/a
+# The table is ordered, and two entries earlier than the obvious one win here: a
+# file URI whose path holds a "www" label is opened as a web address, and an
+# address inside a news URI is opened as mail.
+file:///tmp/www.example.com
+news:comp.lang.c@example.com
 news:comp.lang.c
 man:ls
 man:ls(1)
 info:coreutils
 magnet:?xt=urn:btih:0123456789abcdef
 h323:user@example.com
+h323:example.com
+sip:user@example.com
 sips:user@example.com
 http://example.com/path(with)parens
 http://example.com/path(unbalanced

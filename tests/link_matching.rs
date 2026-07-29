@@ -24,13 +24,11 @@ fn the_pattern_table_keeps_the_frozen_order_and_kinds() {
 }
 
 #[test]
-fn the_expanded_patterns_keep_the_frozen_lengths() {
-    let lengths: Vec<_> = links::PATTERNS
-        .iter()
-        .map(|pattern| pattern.pattern.len())
-        .collect();
-
-    assert_eq!(lengths, [1490, 1408, 1231, 1321, 71]);
+fn the_expanded_patterns_match_the_frozen_text() {
+    assert_eq!(
+        links::pattern_contract(),
+        include_str!("reference/link-contract.tsv")
+    );
 }
 
 #[test]
@@ -102,7 +100,7 @@ fn only_a_remote_file_uri_is_unclickable() {
             Some(LinkKind::File),
             false,
         ),
-        // A single slash is not a valid file URI, so no host name is found.
+        // A single slash carries no authority, so GLib reports no host.
         ("file:/tmp/example", Some(LinkKind::File), true),
         ("https://elsewhere.invalid/", Some(LinkKind::FullHttp), true),
         ("not a link", None, true),

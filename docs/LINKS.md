@@ -25,6 +25,15 @@ The header also defines a pattern for voice-over-IP schemes, but the reference
 never registers it. The port omits it too, so `sips:someone@example.com` is
 still classified as a mail address.
 
+The reference compiles this table twice, for two different jobs. It compiles each
+pattern with no options to classify the target of an escape-sequence hyperlink,
+and it compiles the same text again with
+`PCRE2_CASELESS | PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_MULTILINE`, JIT-compiles
+it, and hands it to VTE to highlight matches on screen. Only the first is ported
+here. The options are not interchangeable: `PCRE2_UTF` changes what the host
+fragment's `(?! [[:ascii:]] ) [[:graph:]]` accepts, so the highlighting path needs
+its own proof and belongs with the screen work.
+
 Patterns are compiled through the system PCRE2 library, the same one the C
 reference and VTE use. `classify` compiles them once on first use with no
 options and looks for a match anywhere in the candidate, which is how the
@@ -76,20 +85,28 @@ mail client. As with the launch prefix, the comparison is case sensitive.
 
 ## Test boundary
 
+`tests/reference/link-contract.tsv` holds the pattern lines the frozen probe
+wrote, so the expanded pattern text and the table order are checked against the
+reference rather than against a transcribed length.
+
 `tests/link_matching.rs` covers the interesting candidates without needing a
-reference build: the order and kinds of the table, the length of each expanded
-pattern, classification, clickable file hosts, launch prefixes, and copied text.
+reference build: that contract, classification, clickable file hosts, launch
+prefixes, and copied text.
 
 The proof lives in `tests/reference/link-matching.sh`. Both probes read
 `tests/reference/link-fixtures.txt` and write the registered patterns and, for
 every candidate, its classification, whether it may be opened, the URI it opens
-with, and the text copying it produces. The script then checks that the corpus
-actually reached every kind, so an empty comparison cannot pass, that a candidate
-outside ASCII kept its own bytes, and that a remote host stayed refused even when
-its path defeats unescaping. Those last two checks guard particular branches
-rather than the report as a whole, because a corpus can agree on every candidate
-it holds while never reaching a branch at all, and a comparison that reaches
-nothing proves nothing about it.
+with, and the text copying it produces.
+
+The script then guards individual branches, because a corpus can agree on every
+candidate it holds while never reaching a branch at all, and a comparison that
+reaches nothing proves nothing about it. It checks that the report accounts for
+every candidate, since both probes decide for themselves which lines are
+candidates; that every kind was reached; that a candidate outside ASCII kept its
+own bytes; that a remote host is refused whether or not its path can be
+unescaped, while this machine's own host is accepted; and that the two candidates
+decided by table order rather than by the scheme they name keep the kind the
+order gives them.
 
 Each probe writes to a named file rather than to standard output. The frozen
 probe runs under a display and a session bus, and those wrappers print messages
@@ -104,17 +121,28 @@ real clipboard, and replaces `gtk_show_uri_on_window` to record the URI that wou
 reach the desktop launcher. The window matters because the frozen code passes the
 widget's toplevel to the launcher: without one, GLib's type check reports an
 invalid cast on every candidate as soon as the reference is built without
-optimization. `tests/reference/probe-command.py` reads the compile flags and link
-line back out of the reference build so the probe and the frozen binary share one
-set of build options.
+optimization. `tests/reference/probe-command.py` reads the compiler, its flags,
+and the link line back out of the reference build so the probe and the frozen
+binary share one set of build options.
 
-The harness adds one candidate that names the local host, which is the only way
-to reach the "this machine" branch of the clickable test.
+The harness appends two candidates naming the local host, which only this machine
+knows, because that is the only way to reach the "this machine" branch of the
+clickable test.
 
-Three things stay outside this boundary. Highlighting the matches inside a running
-terminal needs the VTE widget, so it belongs with the screen work. Copying sets
-only the clipboard here, while the reference sets the primary selection as well,
-in an order it fixes deliberately; the port has no clipboard writer yet. And the
-corpus is read as text, so it cannot carry a candidate that is not valid UTF-8,
-even though the patterns are compiled without PCRE2's UTF mode and the reference
-matches raw bytes. VTE hands out UTF-8, so nothing reachable is lost today.
+The probe asks for the URI of every candidate, while the reference asks only for
+the URI of a candidate it would open. So the report carries a `launch` line for a
+remote `file:` URI that the reference would never follow. That is deliberate, and
+it means the report describes what each helper answers rather than which helpers a
+click reaches.
+
+Four things stay outside this boundary. Highlighting the matches inside a running
+terminal needs the VTE widget and a second set of compile options, so it belongs
+with the screen work. Nothing compares the extent of a match, only whether there
+was one, so the fragments that trim a trailing quote or balance a bracket rest on
+the pattern text being identical and the library being shared; comparing extent
+belongs with highlighting, which is what extent is for. Copying sets only the
+clipboard here, while the reference sets the primary selection as well, in an order
+it fixes deliberately; the port has no clipboard writer yet. And the corpus is read
+as text, so it cannot carry a candidate that is not valid UTF-8, even though these
+patterns are compiled without PCRE2's UTF mode and the reference matches raw bytes.
+VTE hands out UTF-8, so nothing reachable is lost today.

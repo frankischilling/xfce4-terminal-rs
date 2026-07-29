@@ -9,9 +9,7 @@ use std::fmt::Write as _;
 use std::process::ExitCode;
 use std::sync::Mutex;
 
-use xfce4_terminal::links::{
-    self, PATTERNS, classify, clipboard_text, is_clickable, kind_name, launch_uri,
-};
+use xfce4_terminal::links::{self, classify, clipboard_text, is_clickable, kind_name, launch_uri};
 
 /// The report under construction.
 ///
@@ -51,13 +49,10 @@ fn main() -> ExitCode {
         return ExitCode::from(3);
     }
 
-    for (index, entry) in PATTERNS.iter().enumerate() {
-        report!(
-            "pattern\t{index}\t{}\t{}",
-            kind_name(Some(entry.kind)),
-            entry.pattern
-        );
-    }
+    REPORT
+        .lock()
+        .expect("the report buffer is usable")
+        .push_str(&links::pattern_contract());
 
     // Report the messages of the measured calls instead of leaving them on the
     // standard error stream, where the isolated session adds unrelated noise.
