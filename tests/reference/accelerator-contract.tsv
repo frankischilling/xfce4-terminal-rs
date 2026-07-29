@@ -1,0 +1,65 @@
+<Actions>/terminal-window/file-menu	
+<Actions>/terminal-window/new-tab	<control><shift>t
+<Actions>/terminal-window/new-window	<control><shift>n
+<Actions>/terminal-window/open-folder	
+<Actions>/terminal-window/undo-close-tab	<control><shift>d
+<Actions>/terminal-window/detach-tab	
+<Actions>/terminal-window/close-tab	<control><shift>w
+<Actions>/terminal-window/close-other-tabs	
+<Actions>/terminal-window/close-window	<control><shift>q
+<Actions>/terminal-window/edit-menu	
+<Actions>/terminal-window/copy	<control><shift>c
+<Actions>/terminal-window/copy-html	
+<Actions>/terminal-window/paste	<control><shift>v
+<Actions>/terminal-window/paste-alt	<control><shift>Insert
+<Actions>/terminal-window/paste-selection	
+<Actions>/terminal-window/paste-selection-alt	
+<Actions>/terminal-window/select-all	<control><shift>a
+<Actions>/terminal-window/copy-input	
+<Actions>/terminal-window/preferences	
+<Actions>/terminal-window/view-menu	
+<Actions>/terminal-window/zoom-in	<control>plus
+<Actions>/terminal-window/zoom-in-alt	<control>KP_Add
+<Actions>/terminal-window/zoom-out	<control>minus
+<Actions>/terminal-window/zoom-out-alt	<control>KP_Subtract
+<Actions>/terminal-window/zoom-reset	<control>0
+<Actions>/terminal-window/zoom-reset-alt	<control>KP_0
+<Actions>/terminal-window/terminal-menu	
+<Actions>/terminal-window/set-title	<control><shift>s
+<Actions>/terminal-window/set-title-color	
+<Actions>/terminal-window/search	<control><shift>f
+<Actions>/terminal-window/search-next	
+<Actions>/terminal-window/search-prev	
+<Actions>/terminal-window/save-contents	
+<Actions>/terminal-window/reset	
+<Actions>/terminal-window/reset-and-clear	
+<Actions>/terminal-window/tabs-menu	
+<Actions>/terminal-window/prev-tab	<control>Page_Up
+<Actions>/terminal-window/next-tab	<control>Page_Down
+<Actions>/terminal-window/last-active-tab	
+<Actions>/terminal-window/move-tab-left	<control><shift>Page_Up
+<Actions>/terminal-window/move-tab-right	<control><shift>Page_Down
+<Actions>/terminal-window/help-menu	
+<Actions>/terminal-window/contents	F1
+<Actions>/terminal-window/about	
+<Actions>/terminal-window/zoom-menu	
+<Actions>/terminal-window/toggle-menubar	F10
+<Actions>/terminal-window/show-menubar	
+<Actions>/terminal-window/show-toolbar	
+<Actions>/terminal-window/show-borders	
+<Actions>/terminal-window/fullscreen	F11
+<Actions>/terminal-window/read-only	
+<Actions>/terminal-window/scroll-on-output	
+<Actions>/terminal-window/goto-tab-1	<Alt>1
+<Actions>/terminal-window/goto-tab-2	<Alt>2
+<Actions>/terminal-window/goto-tab-3	<Alt>3
+<Actions>/terminal-window/goto-tab-4	<Alt>4
+<Actions>/terminal-window/goto-tab-5	<Alt>5
+<Actions>/terminal-window/goto-tab-6	<Alt>6
+<Actions>/terminal-window/goto-tab-7	<Alt>7
+<Actions>/terminal-window/goto-tab-8	<Alt>8
+<Actions>/terminal-window/goto-tab-9	<Alt>9
+<Actions>/terminal-widget/shift-up	<Shift>Up
+<Actions>/terminal-widget/shift-down	<Shift>Down
+<Actions>/terminal-widget/shift-pageup	<Shift>Page_Up
+<Actions>/terminal-widget/shift-pagedown	<Shift>Page_Down

@@ -1,11 +1,52 @@
 //! Persistence for the global GTK accelerator map.
 
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 use crate::ffi;
 
 /// Xfce resource path retained from the C application.
 pub const RELATIVE_PATH: &str = "xfce4/terminal/accels.scm";
+const DEFINITION_CONTRACT: &str = include_str!("../tests/reference/accelerator-contract.tsv");
+
+/// One accelerator path and its frozen default shortcut.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AcceleratorDefinition {
+    pub path: &'static str,
+    pub default_accelerator: &'static str,
+}
+
+/// Returns the checked text contract used by the frozen-reference comparison.
+pub fn definition_contract() -> &'static str {
+    DEFINITION_CONTRACT
+}
+
+/// Returns every window and terminal-widget accelerator in reference order.
+pub fn definitions() -> &'static [AcceleratorDefinition] {
+    static DEFINITIONS: OnceLock<Vec<AcceleratorDefinition>> = OnceLock::new();
+    DEFINITIONS.get_or_init(|| {
+        DEFINITION_CONTRACT
+            .lines()
+            .map(|line| {
+                let (path, default_accelerator) =
+                    line.split_once('\t').expect("accelerator contract fields");
+                AcceleratorDefinition {
+                    path,
+                    default_accelerator,
+                }
+            })
+            .collect()
+    })
+}
+
+/// Registers the frozen default shortcut for every application action.
+pub fn register_defaults() -> Result<(), String> {
+    for definition in definitions() {
+        let (key, modifiers) = gtk::accelerator_parse(definition.default_accelerator);
+        add_entry(definition.path, key, modifiers)?;
+    }
+    Ok(())
+}
 
 /// Resolves the accelerator file below an Xfce configuration directory.
 pub fn path(config_home: &Path) -> PathBuf {

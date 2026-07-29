@@ -100,7 +100,14 @@ impl Preferences {
                     .map(PreferenceValue::Boolean)
                     .map_err(PreferenceError),
             },
-            PreferenceKind::String => Ok(PreferenceValue::String(string_value)),
+            PreferenceKind::String => match string_value {
+                Some(value) => Ok(PreferenceValue::String(Some(value))),
+                None => self
+                    .session
+                    .get_transformed_string(name)
+                    .map(PreferenceValue::String)
+                    .map_err(PreferenceError),
+            },
             PreferenceKind::Unsigned { .. } => match string_value {
                 Some(value) => Ok(PreferenceValue::Unsigned(libc::strtoul_u32(&value))),
                 None => self

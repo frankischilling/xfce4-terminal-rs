@@ -43,6 +43,11 @@ fn unreadable_terminalrc_does_not_prevent_preferences_startup() {
     run_isolated_probe(Some("this is not a key file"), Some("unreadable-migration"));
 }
 
+#[test]
+fn non_string_storage_uses_the_frozen_string_conversion() {
+    run_isolated_probe(None, Some("uint-string-conversion"));
+}
+
 fn run_isolated_probe(terminalrc: Option<&str>, scenario: Option<&str>) {
     let root = TempDirectory::new("xfce4-terminal-xfconf");
     let home = root.path().join("home");

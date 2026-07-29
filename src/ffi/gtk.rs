@@ -1,4 +1,10 @@
 //! Safe wrappers for GTK accelerator-map persistence.
+//!
+//! Every wrapper in this module targets GTK 3.24 or newer and requires GTK to
+//! be initialized on the calling main thread. GTK copies borrowed strings
+//! during each call, and no native pointer escapes. Functions without a native
+//! error channel are treated as successful once their Rust arguments pass
+//! validation; boolean GTK results are returned to the caller.
 
 use std::ffi::CString;
 use std::os::unix::ffi::OsStrExt;

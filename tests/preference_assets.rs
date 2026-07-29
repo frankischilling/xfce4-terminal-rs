@@ -18,6 +18,15 @@ fn candidate_exposes_the_application_resource_constants() {
 }
 
 #[test]
+fn candidate_exposes_every_frozen_accelerator_definition() {
+    assert_eq!(
+        accelerators::definition_contract(),
+        include_str!("reference/accelerator-contract.tsv")
+    );
+    assert_eq!(accelerators::definitions().len(), 65);
+}
+
+#[test]
 fn all_builtin_color_schemes_load_through_the_public_reader() {
     let schemes = colors::load_directory(Path::new("colorschemes"), "desktop.in")
         .expect("load source color schemes");

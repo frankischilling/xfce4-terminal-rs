@@ -86,6 +86,22 @@ run_string_typed_probe()
       ' sh "$probe" > "$output"
 }
 
+run_uint_typed_string_probe()
+{
+  probe=$1
+  root=$2
+  output=$3
+  mkdir -p "$root/home" "$root/config" "$root/cache"
+  env \
+    HOME="$root/home" \
+    XDG_CONFIG_HOME="$root/config" \
+    XDG_CACHE_HOME="$root/cache" \
+    dbus-run-session -- sh -c '
+        xfconf-query -c xfce4-terminal -p /title-initial -n -t uint -s 42
+        exec "$1" --values
+      ' sh "$probe" > "$output"
+}
+
 run_probe "$reference_probe" "$test_root/reference-default" \
   "$test_root/reference-default.tsv"
 run_probe "$candidate_probe" "$test_root/candidate-default" \
@@ -125,3 +141,10 @@ run_string_typed_probe "$reference_probe" "$test_root/reference-strings" \
 run_string_typed_probe "$candidate_probe" "$test_root/candidate-strings" \
   "$test_root/candidate-strings.tsv"
 diff -u "$test_root/reference-strings.tsv" "$test_root/candidate-strings.tsv"
+
+run_uint_typed_string_probe "$reference_probe" "$test_root/reference-uint-string" \
+  "$test_root/reference-uint-string.tsv"
+run_uint_typed_string_probe "$candidate_probe" "$test_root/candidate-uint-string" \
+  "$test_root/candidate-uint-string.tsv"
+diff -u "$test_root/reference-uint-string.tsv" \
+  "$test_root/candidate-uint-string.tsv"

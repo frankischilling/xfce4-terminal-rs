@@ -38,11 +38,12 @@ run_isolated()
     "$@" > "$raw_output"
 
   awk -F '\t' \
-    '$1 == "gettext-domain" ||
+    '$1 == "accelerator" ||
+     $1 == "gettext-domain" ||
      $1 == "locale-directory" ||
      $1 == "gettext-charset" ||
      $1 == "accelerator-file"' \
-    "$raw_output" > "$output"
+    "$raw_output" | sort > "$output"
 
   for record in gettext-domain locale-directory gettext-charset accelerator-file; do
     count=$(awk -F '\t' -v record="$record" '$1 == record { count++ } END { print count + 0 }' "$output")
@@ -52,8 +53,17 @@ run_isolated()
       exit 1
     fi
   done
+
+  count=$(awk -F '\t' '$1 == "accelerator" { count++ } END { print count + 0 }' "$output")
+  if [ "$count" -ne 65 ]; then
+    echo "expected 65 accelerator records, found $count" >&2
+    cat "$raw_output" >&2
+    exit 1
+  fi
 }
 
 run_isolated "$test_root/reference.tsv" "$reference_binary" --preferences
-run_isolated "$test_root/candidate.tsv" "$candidate_probe" "$config"
+run_isolated "$test_root/candidate.tsv" \
+  env XFCE4_TERMINAL_ACCELERATOR_CONTRACT_ONLY=1 \
+  "$candidate_probe" "$config"
 diff -u "$test_root/reference.tsv" "$test_root/candidate.tsv"
