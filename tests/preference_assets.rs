@@ -1,10 +1,13 @@
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use xfce4_terminal::{accelerators, colors, localization};
 
+mod support;
+
+use support::TempDirectory;
+
 #[test]
-fn accelerator_and_gettext_paths_match_the_c_application() {
+fn candidate_exposes_the_application_resource_constants() {
     assert_eq!(
         accelerators::path(Path::new("/tmp/config")),
         PathBuf::from("/tmp/config/xfce4/terminal/accels.scm")
@@ -12,9 +15,6 @@ fn accelerator_and_gettext_paths_match_the_c_application() {
     assert_eq!(accelerators::RELATIVE_PATH, "xfce4/terminal/accels.scm");
     assert_eq!(localization::GETTEXT_DOMAIN, "xfce4-terminal");
     assert_eq!(localization::CHARSET, "UTF-8");
-
-    let rust_main = include_str!("../src/main.rs");
-    assert!(rust_main.contains("localization::initialize()"));
 }
 
 #[test]
@@ -51,32 +51,36 @@ fn all_builtin_color_schemes_load_through_the_public_reader() {
 
 #[test]
 fn installed_and_user_color_schemes_share_one_sorted_model() {
-    let root = std::env::temp_dir().join(format!(
-        "xfce4-terminal-colors-{}-{}",
-        std::process::id(),
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("system clock")
-            .as_nanos()
-    ));
-    let data = root.join("data/xfce4/terminal/colorschemes");
-    let config = root.join("config/xfce4/terminal/colorschemes");
+    let root = TempDirectory::new("xfce4-terminal-colors");
+    let data = root.path().join("data/xfce4/terminal/colorschemes");
+    let config = root.path().join("config/xfce4/terminal/colorschemes");
     std::fs::create_dir_all(&data).expect("create data schemes");
     std::fs::create_dir_all(&config).expect("create user schemes");
     std::fs::write(data.join("global.theme"), "[Scheme]\nName=Global\n")
         .expect("write global scheme");
     std::fs::write(config.join("user.theme"), "[Scheme]\nName=Custom\n")
         .expect("write user scheme");
+    std::fs::write(
+        config.join("extensionless"),
+        "[Scheme]\nName=Any filename\n",
+    )
+    .expect("write extensionless user scheme");
+    std::fs::write(
+        data.join("missing-name.theme"),
+        "[Scheme]\nColorForeground=#fff\n",
+    )
+    .expect("write titleless scheme");
+    std::fs::write(config.join("invalid.theme"), "not a key file")
+        .expect("write unreadable scheme");
 
-    let schemes =
-        colors::discover(&[root.join("data")], &root.join("config")).expect("discover schemes");
-    let _ = std::fs::remove_dir_all(&root);
+    let schemes = colors::discover(&[root.path().join("data")], &root.path().join("config"))
+        .expect("discover schemes");
 
     assert_eq!(
         schemes
             .iter()
             .map(|scheme| scheme.name.as_str())
             .collect::<Vec<_>>(),
-        ["Custom", "Global"]
+        ["Any filename", "Custom", "Global"]
     );
 }

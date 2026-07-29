@@ -1,4 +1,6 @@
 use std::process::Command;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use xfce4_terminal::preferences::{PreferenceKind, PreferenceValue, Preferences, definitions};
 
@@ -16,37 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    if std::env::var_os("XFCE4_TERMINAL_TEST_MIGRATION").is_some() {
-        assert_eq!(
-            preferences.get("misc-bell")?,
-            PreferenceValue::Boolean(false)
-        );
-        assert_eq!(
-            preferences.get("scrolling-lines")?,
-            PreferenceValue::Unsigned(1234)
-        );
-        assert_eq!(
-            preferences.get("cell-width-scale")?,
-            PreferenceValue::Double(1.25)
-        );
-        assert_eq!(
-            preferences.get("title-initial")?,
-            PreferenceValue::String(Some("Legacy title".to_owned()))
-        );
-        assert_eq!(
-            preferences.get("scrolling-bar")?,
-            PreferenceValue::Enumeration("TERMINAL_SCROLLBAR_LEFT".to_owned())
-        );
-        assert_eq!(
-            preferences.get("color-palette")?,
-            PreferenceValue::String(Some(
-                (1..=15)
-                    .map(|index| format!("#{index:06x}"))
-                    .collect::<Vec<_>>()
-                    .join(";")
-                    + ";"
-            ))
-        );
+    if let Some(scenario) = std::env::var_os("XFCE4_TERMINAL_TEST_SCENARIO") {
+        check_migration_scenario(&preferences, &scenario.to_string_lossy())?;
         return Ok(());
     }
 
@@ -71,12 +44,85 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ])
         .status()?;
     assert!(status.success());
-    glib::MainContext::default().iteration(true);
+    let expected = PreferenceValue::String(Some("changed outside Rust".to_owned()));
+    let context = glib::MainContext::default();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let observed = loop {
+        let _ = context.iteration(false);
+
+        let observed = preferences.get("title-initial")?;
+        if observed == expected || Instant::now() >= deadline {
+            break observed;
+        }
+        thread::sleep(Duration::from_millis(10));
+    };
     assert_eq!(
-        preferences.get("title-initial")?,
-        PreferenceValue::String(Some("changed outside Rust".to_owned()))
+        observed, expected,
+        "Xfconf did not deliver the external property change before the timeout"
     );
 
+    Ok(())
+}
+
+fn check_migration_scenario(
+    preferences: &Preferences,
+    scenario: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match scenario {
+        "valid-migration" => {
+            assert_eq!(
+                preferences.get("misc-bell")?,
+                PreferenceValue::Boolean(false)
+            );
+            assert_eq!(
+                preferences.get("scrolling-lines")?,
+                PreferenceValue::Unsigned(1234)
+            );
+            assert_eq!(
+                preferences.get("cell-width-scale")?,
+                PreferenceValue::Double(1.25)
+            );
+            assert_eq!(
+                preferences.get("title-initial")?,
+                PreferenceValue::String(Some("Legacy title".to_owned()))
+            );
+            assert_eq!(
+                preferences.get("scrolling-bar")?,
+                PreferenceValue::Enumeration("TERMINAL_SCROLLBAR_LEFT".to_owned())
+            );
+            assert_eq!(
+                preferences.get("color-palette")?,
+                PreferenceValue::String(Some(
+                    (1..=15)
+                        .map(|index| format!("#{index:06x}"))
+                        .collect::<Vec<_>>()
+                        .join(";")
+                        + ";"
+                ))
+            );
+        }
+        "invalid-migration" => {
+            assert_eq!(
+                preferences.get("scrolling-lines")?,
+                PreferenceValue::Unsigned(1000)
+            );
+            assert_eq!(
+                preferences.get("title-initial")?,
+                PreferenceValue::String(Some("After invalid value".to_owned()))
+            );
+        }
+        "unreadable-migration" => {
+            assert_eq!(
+                preferences.get("scrolling-lines")?,
+                PreferenceValue::Unsigned(1000)
+            );
+            assert_eq!(
+                preferences.get("title-initial")?,
+                PreferenceValue::String(Some("Terminal".to_owned()))
+            );
+        }
+        _ => return Err(format!("unknown preference probe scenario {scenario:?}").into()),
+    }
     Ok(())
 }
 
