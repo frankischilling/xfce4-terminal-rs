@@ -54,6 +54,10 @@ false boolean spelling, unsigned integers use decimal `strtoul`, and doubles
 use the C locale with an ASCII fallback. An unrecognized enum becomes the
 first value in that enum, matching the C transform.
 
+Migration is best effort. An unreadable file leaves the defaults in place. An
+invalid value is skipped without preventing later keys from being imported.
+The normal `Preferences::set` API still rejects invalid types and values.
+
 The older `Terminal/terminalrc` format may contain `ColorPalette1` through
 `ColorPalette16`. The frozen C loop also accepts keys 1 through 15 followed by
 a missing key 16 and leaves a trailing semicolon. The Rust migration preserves
@@ -67,8 +71,9 @@ GTK's native accelerator-map format on the initialized GTK main thread.
 
 Meson installs the eight built-in color schemes under
 `share/xfce4/terminal/colorschemes`. The public color reader combines installed
-and user scheme directories, uses localized names from the `[Scheme]` key-file
-group, and sorts the result by name.
+and user scheme directories, accepts any preset filename, and skips files that
+cannot provide a name. It uses localized names from the `[Scheme]` key-file
+group and sorts the result by name.
 
 The gettext domain is `xfce4-terminal`, the character set is `UTF-8`, and
 Meson passes its configured locale directory into the Rust build. A direct
@@ -79,17 +84,22 @@ prefix.
 
 `tests/preferences_parity.rs` compares definitions with the frozen C probe.
 `tests/reference/preferences-behavior.sh` runs the C and Rust probes on
-separate private buses and compares their live defaults, migrated values, and
-string-typed compatibility values. `tests/xfconf_round_trip.rs` checks every
-Rust default, writes and reads all 94 properties, observes a write from a
-separate Xfconf client, and exercises old file migration without touching the
-user's channel.
+separate private buses and compares their live defaults, valid and invalid
+migration cases, and string-typed compatibility values. The isolated
+environment is applied before each private bus starts, so the activated
+Xfconf daemon uses the test home and configuration directories.
+`tests/xfconf_round_trip.rs` checks every Rust default, writes and reads all 94
+properties, observes a write from a separate Xfconf client, and exercises old
+file migration without touching the user's channel.
 
 `tests/accelerator_round_trip.rs` saves and loads GTK's accelerator map under
-Xvfb. `tests/preference_assets.rs` checks the accelerator and gettext paths,
-reads all built-in schemes, and combines installed and user schemes. Protected
-CI also compares the installed color schemes and gettext catalogs from the
-frozen and candidate Meson builds.
+Xvfb and proves that loading restores a changed shortcut.
+`tests/reference/application-calls.sh` observes the frozen application and the
+Rust probe as separate processes. It compares the gettext domain, locale
+directory, character set, and accelerator filename passed to their native
+libraries. `tests/preference_assets.rs` reads all built-in schemes and combines
+installed and user schemes. Protected CI also compares the installed color
+schemes and gettext catalogs from the frozen and candidate Meson builds.
 
 The installed program remains the C application. These tests cover the
 preference contract, but they do not change the final cutover rule.

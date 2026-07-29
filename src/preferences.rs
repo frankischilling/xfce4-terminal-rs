@@ -153,7 +153,9 @@ impl Preferences {
             return Ok(0);
         }
 
-        let config_home = config_home()?;
+        let Ok(config_home) = config_home() else {
+            return Ok(0);
+        };
         let current = config_home.join("xfce4/terminal/terminalrc");
         let old = config_home.join("Terminal/terminalrc");
         let (path, migrate_palette) = if current.is_file() {
@@ -165,9 +167,12 @@ impl Preferences {
         };
 
         let key_file = glib::KeyFile::new();
-        key_file
+        if key_file
             .load_from_file(path, glib::KeyFileFlags::NONE)
-            .map_err(|error| PreferenceError(error.to_string()))?;
+            .is_err()
+        {
+            return Ok(0);
+        }
 
         let mut migrated = 0;
         for definition in definitions() {
@@ -177,11 +182,15 @@ impl Preferences {
             {
                 continue;
             }
-            let source = key_file
-                .string("Configuration", definition.legacy_key)
-                .map_err(|error| PreferenceError(error.to_string()))?;
-            self.set(definition.name, legacy_value(definition, source.as_str()))?;
-            migrated += 1;
+            let Ok(source) = key_file.string("Configuration", definition.legacy_key) else {
+                continue;
+            };
+            if self
+                .set(definition.name, legacy_value(definition, source.as_str()))
+                .is_ok()
+            {
+                migrated += 1;
+            }
         }
 
         if migrate_palette {
@@ -201,8 +210,11 @@ impl Preferences {
                     }
                 }
             }
-            if complete {
-                self.set("color-palette", PreferenceValue::String(Some(palette)))?;
+            if complete
+                && self
+                    .set("color-palette", PreferenceValue::String(Some(palette)))
+                    .is_ok()
+            {
                 migrated += 1;
             }
         }

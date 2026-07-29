@@ -30,3 +30,22 @@ pub fn save(config_home: &Path) -> Result<(), String> {
     std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     ffi::gtk::save_accel_map(&path)
 }
+
+/// Registers an action path and its default accelerator in GTK's global map.
+pub fn add_entry(accel_path: &str, key: u32, modifiers: gdk::ModifierType) -> Result<(), String> {
+    ffi::gtk::add_accel_entry(accel_path, key, modifiers)
+}
+
+/// Replaces an accelerator and resolves conflicting entries in GTK's map.
+pub fn change_entry(
+    accel_path: &str,
+    key: u32,
+    modifiers: gdk::ModifierType,
+) -> Result<bool, String> {
+    ffi::gtk::change_accel_entry(accel_path, key, modifiers)
+}
+
+/// Returns the key and modifiers stored for one GTK action path.
+pub fn lookup_entry(accel_path: &str) -> Result<Option<(u32, gdk::ModifierType)>, String> {
+    ffi::gtk::lookup_accel_entry(accel_path)
+}

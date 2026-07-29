@@ -54,8 +54,13 @@ pub fn discover(
         .map(|directory| directory.join(relative))
         .chain(std::iter::once(config_home.join(relative)))
     {
-        if directory.is_dir() {
-            schemes.extend(load_directory(&directory, ".theme")?);
+        let Ok(entries) = std::fs::read_dir(directory) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            if let Ok(scheme) = load_file(entry.path()) {
+                schemes.push(scheme);
+            }
         }
     }
     schemes.sort_by(|left, right| left.name.cmp(&right.name));
