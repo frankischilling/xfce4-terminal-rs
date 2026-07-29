@@ -28,6 +28,7 @@ RUN printf '%s\n' \
       meson \
       ninja-build \
       pkg-config \
+      python3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY tests/reference/container-build.sh /usr/local/bin/build-xfce4-terminal-reference

@@ -9,9 +9,13 @@ mod ffi;
 pub mod accelerators;
 pub mod cli;
 pub mod colors;
+pub mod links;
 pub mod localization;
 pub mod preferences;
 pub mod reference;
+
+/// The GLib log domain the reference builds with, from `terminal/meson.build`.
+pub const LOG_DOMAIN: &str = "xfce4-terminal";
 
 /// Returns the status text used by the development-only Rust candidate.
 pub fn candidate_status() -> String {

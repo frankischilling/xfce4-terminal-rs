@@ -27,6 +27,10 @@ path = "src/bin/preferences_probe.rs"
 name = "xfce4-terminal-accelerator-probe"
 path = "src/bin/accelerator_probe.rs"
 
+[[bin]]
+name = "xfce4-terminal-link-probe"
+path = "src/bin/link_probe.rs"
+
 [profile.release]
 lto = "thin"
 strip = true

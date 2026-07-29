@@ -32,6 +32,9 @@ DESTDIR="$output_dir/install" meson install -C "$build_dir"
   "$source_dir" \
   "$build_dir" \
   "$build_dir/preferences-probe"
+"$repository/tests/reference/build-link-probe.sh" \
+  "$build_dir" \
+  "$build_dir/link-probe"
 "$repository/tests/reference/build-application-call-probe.sh" \
   "$build_dir/application-call-probe.so"
 printf '%s\n' "$build_dir/terminal/xfce4-terminal"
