@@ -1,6 +1,6 @@
 //! Readers for installed and user-provided terminal color schemes.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 /// Source files installed by Meson as translated `.theme` files.
@@ -49,14 +49,25 @@ pub fn discover(
 ) -> Result<Vec<ColorScheme>, String> {
     let relative = Path::new("xfce4/terminal/colorschemes");
     let mut schemes = Vec::new();
+    let mut matched_names = HashSet::new();
     for directory in data_directories
         .iter()
         .map(|directory| directory.join(relative))
-        .chain(std::iter::once(config_home.join(relative)))
     {
         let Ok(entries) = std::fs::read_dir(directory) else {
             continue;
         };
+        for entry in entries.flatten() {
+            if std::fs::metadata(entry.path()).is_ok_and(|metadata| metadata.is_file())
+                && matched_names.insert(entry.file_name())
+            {
+                if let Ok(scheme) = load_file(entry.path()) {
+                    schemes.push(scheme);
+                }
+            }
+        }
+    }
+    if let Ok(entries) = std::fs::read_dir(config_home.join(relative)) {
         for entry in entries.flatten() {
             if let Ok(scheme) = load_file(entry.path()) {
                 schemes.push(scheme);

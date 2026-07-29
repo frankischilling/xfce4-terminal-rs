@@ -100,6 +100,7 @@ jobs:
           reference_binary="$RUNNER_TEMP/xfce4-terminal-reference/build/terminal/xfce4-terminal"
           reference_options="$RUNNER_TEMP/xfce4-terminal-reference/build/options-probe"
           reference_preferences="$RUNNER_TEMP/xfce4-terminal-reference/build/preferences-probe"
+          reference_colors="$RUNNER_TEMP/xfce4-terminal-reference/build/color-resource-probe"
           reference_links="$RUNNER_TEMP/xfce4-terminal-reference/build/link-probe"
           reference_child="$RUNNER_TEMP/xfce4-terminal-reference/build/child-probe"
           reference_screen="$RUNNER_TEMP/xfce4-terminal-reference/build/screen-probe"
@@ -107,6 +108,7 @@ jobs:
           reference_shell_shim="$RUNNER_TEMP/xfce4-terminal-reference/build/login-shell-shim.so"
           candidate_options="./build/rust/cargo-target/release/xfce4-terminal-options-probe"
           candidate_preferences="./build/rust/cargo-target/release/xfce4-terminal-preferences-probe"
+          candidate_colors="./build/rust/cargo-target/release/xfce4-terminal-color-resource-probe"
           candidate_accelerators="./build/rust/cargo-target/release/xfce4-terminal-accelerator-probe"
           candidate_links="./build/rust/cargo-target/release/xfce4-terminal-link-probe"
           candidate_child="./build/rust/cargo-target/release/xfce4-terminal-child-probe"
@@ -114,6 +116,7 @@ jobs:
           test -x "$reference_binary"
           test -x "$reference_options"
           test -x "$reference_preferences"
+          test -x "$reference_colors"
           test -x "$reference_links"
           test -x "$reference_child"
           test -x "$reference_screen"
@@ -121,6 +124,7 @@ jobs:
           test -f "$reference_shell_shim"
           test -x "$candidate_options"
           test -x "$candidate_preferences"
+          test -x "$candidate_colors"
           test -x "$candidate_accelerators"
           test -x "$candidate_links"
           test -x "$candidate_child"
@@ -131,6 +135,9 @@ jobs:
           tests/reference/preferences-behavior.sh \
             "$reference_preferences" \
             "$candidate_preferences"
+          tests/reference/color-resources.sh \
+            "$reference_colors" \
+            "$candidate_colors"
           tests/reference/application-calls.sh \
             "$reference_binary" \
             "$candidate_accelerators" \

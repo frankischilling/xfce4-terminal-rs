@@ -32,6 +32,8 @@ DESTDIR="$output_dir/install" meson install -C "$build_dir"
   "$source_dir" \
   "$build_dir" \
   "$build_dir/preferences-probe"
+"$repository/tests/reference/build-color-resource-probe.sh" \
+  "$build_dir/color-resource-probe"
 "$repository/tests/reference/build-link-probe.sh" \
   "$build_dir" \
   "$build_dir/link-probe"
