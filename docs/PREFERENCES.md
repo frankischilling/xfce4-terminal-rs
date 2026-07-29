@@ -76,13 +76,13 @@ also exposes all 65 frozen window and terminal-widget paths with their default
 shortcuts.
 
 Meson installs the eight built-in color schemes under
-`share/xfce4/terminal/colorschemes`. The public color reader combines installed
-and user scheme directories, accepts any preset filename, and skips files that
-cannot provide a name. When several data directories contain the same relative
-filename, the first directory wins, as it does for Xfce resource lookup. A user
-scheme with the same filename remains a separate entry because the C
-application searches configuration resources independently. The reader uses
-localized names from the `[Scheme]` key-file group and sorts the result by name.
+`share/xfce4/terminal/colorschemes`. The public color reader combines the XDG
+data and configuration search paths, accepts any preset filename, and skips
+files that cannot provide a name. Within each search path, the first directory
+containing a relative filename wins, as it does for Xfce resource lookup. Data
+and configuration resources are searched independently, so a user scheme may
+share a filename with an installed scheme. The reader uses localized names from
+the `[Scheme]` key-file group and sorts the result by name.
 
 The gettext domain is `xfce4-terminal`, the character set is `UTF-8`, and
 Meson passes its configured locale directory into the Rust build. A direct
@@ -111,11 +111,11 @@ frozen executable and Rust probe, then compares all 65 paths and shortcuts.
 Rust probe as separate processes. It compares the gettext domain, locale
 directory, character set, and accelerator filename passed to their native
 libraries. `tests/preference_assets.rs` reads all built-in schemes and combines
-installed and user schemes. `tests/reference/color-resources.sh` compares the
-frozen Xfce resource lookup with the Rust reader when data roots contain the
-same filename and when a directory shadows a regular file. Protected CI also
-compares the installed color schemes and gettext catalogs from the frozen and
-candidate Meson builds.
+data and configuration schemes. `tests/reference/color-resources.sh` compares
+the frozen Xfce resource lookup with the Rust reader across user and system data
+and configuration roots. It also checks duplicate filenames, directories, and
+symbolic links. Protected CI compares the installed color schemes and gettext
+catalogs from the frozen and candidate Meson builds.
 
 The installed program remains the C application. These tests cover the
 preference contract, but they do not change the final cutover rule.

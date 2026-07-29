@@ -42,18 +42,23 @@ pub fn load_directory(directory: &Path, suffix: &str) -> Result<Vec<ColorScheme>
     Ok(schemes)
 }
 
-/// Loads installed schemes and user schemes, then sorts the combined list.
+/// Loads data and configuration schemes, then sorts the combined list.
 pub fn discover(
     data_directories: &[PathBuf],
-    config_home: &Path,
+    config_directories: &[PathBuf],
 ) -> Result<Vec<ColorScheme>, String> {
     let relative = Path::new("xfce4/terminal/colorschemes");
     let mut schemes = Vec::new();
+    schemes.extend(discover_resource_type(data_directories, relative));
+    schemes.extend(discover_resource_type(config_directories, relative));
+    schemes.sort_by(|left, right| left.name.cmp(&right.name));
+    Ok(schemes)
+}
+
+fn discover_resource_type(directories: &[PathBuf], relative: &Path) -> Vec<ColorScheme> {
+    let mut schemes = Vec::new();
     let mut matched_names = HashSet::new();
-    for directory in data_directories
-        .iter()
-        .map(|directory| directory.join(relative))
-    {
+    for directory in directories.iter().map(|directory| directory.join(relative)) {
         let Ok(entries) = std::fs::read_dir(directory) else {
             continue;
         };
@@ -67,15 +72,7 @@ pub fn discover(
             }
         }
     }
-    if let Ok(entries) = std::fs::read_dir(config_home.join(relative)) {
-        for entry in entries.flatten() {
-            if let Ok(scheme) = load_file(entry.path()) {
-                schemes.push(scheme);
-            }
-        }
-    }
-    schemes.sort_by(|left, right| left.name.cmp(&right.name));
-    Ok(schemes)
+    schemes
 }
 
 fn load_file(path: PathBuf) -> Result<ColorScheme, String> {

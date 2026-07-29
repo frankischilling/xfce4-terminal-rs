@@ -114,7 +114,7 @@ fn installed_and_user_color_schemes_share_one_sorted_model() {
 
     let schemes = colors::discover(
         &[root.path().join("data"), root.path().join("fallback-data")],
-        &root.path().join("config"),
+        &[root.path().join("config")],
     )
     .expect("discover schemes");
 
@@ -131,5 +131,33 @@ fn installed_and_user_color_schemes_share_one_sorted_model() {
             "Regular fallback",
             "Symlink primary",
         ]
+    );
+}
+
+#[test]
+fn system_configuration_color_schemes_follow_user_precedence() {
+    let root = TempDirectory::new("xfce4-terminal-config-colors");
+    let user = root.path().join("user/xfce4/terminal/colorschemes");
+    let system = root.path().join("system/xfce4/terminal/colorschemes");
+    std::fs::create_dir_all(&user).expect("create user schemes");
+    std::fs::create_dir_all(&system).expect("create system schemes");
+    std::fs::write(user.join("shared.theme"), "[Scheme]\nName=User\n").expect("write user scheme");
+    std::fs::write(
+        system.join("shared.theme"),
+        "[Scheme]\nName=Shadowed system\n",
+    )
+    .expect("write shadowed system scheme");
+    std::fs::write(system.join("system.theme"), "[Scheme]\nName=System only\n")
+        .expect("write system scheme");
+
+    let schemes = colors::discover(&[], &[root.path().join("user"), root.path().join("system")])
+        .expect("discover configuration schemes");
+
+    assert_eq!(
+        schemes
+            .iter()
+            .map(|scheme| scheme.name.as_str())
+            .collect::<Vec<_>>(),
+        ["System only", "User"]
     );
 }

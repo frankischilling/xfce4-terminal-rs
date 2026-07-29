@@ -3,15 +3,18 @@ use std::path::PathBuf;
 use xfce4_terminal::colors;
 
 fn main() -> Result<(), String> {
-    let config_home = glib::user_config_dir();
     let mut data_directories = vec![glib::user_data_dir()];
     data_directories.extend(glib::system_data_dirs());
+    let mut config_directories = vec![glib::user_config_dir()];
+    config_directories.extend(glib::system_config_dirs());
 
-    let config_scheme_dir = config_home.join("xfce4/terminal/colorschemes");
-    let mut paths = colors::discover(&data_directories, &config_home)?
+    let mut paths = colors::discover(&data_directories, &config_directories)?
         .into_iter()
         .map(|scheme| {
-            let resource_type = if scheme.path.starts_with(&config_scheme_dir) {
+            let resource_type = if config_directories
+                .iter()
+                .any(|directory| scheme.path.starts_with(directory))
+            {
                 "config"
             } else {
                 "data"

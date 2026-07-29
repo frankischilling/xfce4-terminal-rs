@@ -22,7 +22,7 @@ mkdir -p \
   "$data_home/$relative/directory.theme" \
   "$data_fallback/$relative" \
   "$config_home/$relative" \
-  "$config_fallback"
+  "$config_fallback/$relative"
 printf '%s\n' '[Scheme]' 'Name=Primary' > "$data_home/$relative/shared.theme"
 printf '%s\n' '[Scheme]' 'Name=Shadowed' > "$data_fallback/$relative/shared.theme"
 printf '%s\n' '[Scheme]' 'Name=Fallback' > "$data_fallback/$relative/fallback.theme"
@@ -31,6 +31,8 @@ printf '%s\n' '[Scheme]' 'Name=Symlink primary' > "$test_root/symlink-source.the
 ln -s "$test_root/symlink-source.theme" "$data_home/$relative/symlink.theme"
 printf '%s\n' '[Scheme]' 'Name=Shadowed symlink' > "$data_fallback/$relative/symlink.theme"
 printf '%s\n' '[Scheme]' 'Name=User copy' > "$config_home/$relative/shared.theme"
+printf '%s\n' '[Scheme]' 'Name=Shadowed system copy' > "$config_fallback/$relative/shared.theme"
+printf '%s\n' '[Scheme]' 'Name=System config' > "$config_fallback/$relative/system.theme"
 
 run_probe()
 {
