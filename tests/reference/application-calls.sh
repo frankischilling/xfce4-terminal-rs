@@ -25,15 +25,33 @@ printf '%s\n' \
 run_isolated()
 {
   output=$1
+  raw_output=$output.raw
   shift
   env \
     HOME="$home" \
     XDG_CONFIG_HOME="$config" \
     XDG_CACHE_HOME="$cache" \
+    NO_AT_BRIDGE=1 \
     dbus-run-session -- \
     xvfb-run --auto-servernum \
     env LD_PRELOAD="$call_probe" \
-    "$@" > "$output"
+    "$@" > "$raw_output"
+
+  awk -F '\t' \
+    '$1 == "gettext-domain" ||
+     $1 == "locale-directory" ||
+     $1 == "gettext-charset" ||
+     $1 == "accelerator-file"' \
+    "$raw_output" > "$output"
+
+  for record in gettext-domain locale-directory gettext-charset accelerator-file; do
+    count=$(awk -F '\t' -v record="$record" '$1 == record { count++ } END { print count + 0 }' "$output")
+    if [ "$count" -ne 1 ]; then
+      echo "expected exactly one $record record, found $count" >&2
+      cat "$raw_output" >&2
+      exit 1
+    fi
+  done
 }
 
 run_isolated "$test_root/reference.tsv" "$reference_binary" --preferences
