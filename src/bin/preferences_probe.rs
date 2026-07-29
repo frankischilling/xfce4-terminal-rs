@@ -1,4 +1,6 @@
 use std::process::Command;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use xfce4_terminal::preferences::{PreferenceKind, PreferenceValue, Preferences, definitions};
 
@@ -42,10 +44,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ])
         .status()?;
     assert!(status.success());
-    glib::MainContext::default().iteration(true);
+    let expected = PreferenceValue::String(Some("changed outside Rust".to_owned()));
+    let context = glib::MainContext::default();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let observed = loop {
+        let _ = context.iteration(false);
+
+        let observed = preferences.get("title-initial")?;
+        if observed == expected || Instant::now() >= deadline {
+            break observed;
+        }
+        thread::sleep(Duration::from_millis(10));
+    };
     assert_eq!(
-        preferences.get("title-initial")?,
-        PreferenceValue::String(Some("changed outside Rust".to_owned()))
+        observed, expected,
+        "Xfconf did not deliver the external property change before the timeout"
     );
 
     Ok(())
