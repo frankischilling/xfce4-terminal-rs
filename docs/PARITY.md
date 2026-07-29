@@ -9,7 +9,7 @@ parity on its own.
 | --- | --- | --- |
 | Build foundation | Cargo and Meson build the Rust candidate; CI can build the frozen C revision | Complete |
 | Command line | Exit status, stdout, stderr, and parsed launch specifications | Complete |
-| Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | In progress |
+| Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | Complete |
 | Terminal links | Pattern text and table order, hyperlink classification, opened URI, clickable file hosts, and clipboard text | Complete |
 | Terminal child process | The command, the argument vector, the spawn flags, and the child environment, over each answer the login shell search can reach as an ordinary user, and with and without a realized X11 toplevel | Complete |
 | Terminal screen model | Title expansions and modes, the stored working directory and directory URI, paste-safety detection, and the deterministic colors handed to VTE | Complete |
