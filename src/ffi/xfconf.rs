@@ -1,4 +1,10 @@
 //! Safe, synchronous access to the libxfconf calls used by preferences.
+//!
+//! Every wrapper in this module targets libxfconf 4.18 or newer. Calls are
+//! confined to the thread that owns `Session`, and borrowed pointers never
+//! outlive their native call or the session. Boolean failures and `GError`
+//! results become Rust errors; getters without a native error channel preserve
+//! libxfconf's documented default or null result.
 
 use std::ffi::{CStr, CString, c_char};
 use std::marker::PhantomData;
@@ -172,6 +178,60 @@ impl Session {
             .into_owned();
         unsafe { glib::ffi::g_free(value.cast()) };
         Ok(Some(result))
+    }
+
+    pub(crate) fn get_transformed_string(&self, property: &str) -> Result<Option<String>, String> {
+        let property = property_name(property)?;
+        let mut source = std::mem::MaybeUninit::<glib::gobject_ffi::GValue>::zeroed();
+        let found = unsafe {
+            xfconf_channel_get_property(
+                self.channel.as_ptr(),
+                property.as_ptr(),
+                source.as_mut_ptr(),
+            )
+        };
+        if found == glib::ffi::GFALSE {
+            return Ok(None);
+        }
+
+        // Xfconf transfers an initialized source GValue to the caller. GLib
+        // initializes the destination and owns any string stored there. Both
+        // values are unset before this wrapper returns.
+        let mut source = unsafe { source.assume_init() };
+        let mut destination = std::mem::MaybeUninit::<glib::gobject_ffi::GValue>::zeroed();
+        let destination = unsafe {
+            glib::gobject_ffi::g_value_init(
+                destination.as_mut_ptr(),
+                glib::gobject_ffi::G_TYPE_STRING,
+            )
+        };
+        let transformed = unsafe { glib::gobject_ffi::g_value_transform(&source, destination) };
+        if transformed == glib::ffi::GFALSE {
+            unsafe {
+                glib::gobject_ffi::g_value_unset(&mut source);
+                glib::gobject_ffi::g_value_unset(destination);
+            }
+            return Err(format!(
+                "Xfconf property {} cannot be converted to a string",
+                property.to_string_lossy()
+            ));
+        }
+
+        let value = unsafe { glib::gobject_ffi::g_value_get_string(destination) };
+        let result = if value.is_null() {
+            None
+        } else {
+            Some(
+                unsafe { CStr::from_ptr(value) }
+                    .to_string_lossy()
+                    .into_owned(),
+            )
+        };
+        unsafe {
+            glib::gobject_ffi::g_value_unset(&mut source);
+            glib::gobject_ffi::g_value_unset(destination);
+        }
+        Ok(result)
     }
 
     pub(crate) fn set_string(&self, property: &str, value: &str) -> Result<(), String> {

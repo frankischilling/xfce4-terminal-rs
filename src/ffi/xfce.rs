@@ -1,4 +1,9 @@
 //! Safe access to the small libxfce4util surface needed by the CLI.
+//!
+//! These wrappers target libxfce4util 4.18 or newer. The library owns returned
+//! pointers and copies textdomain arguments before returning. Its APIs expose
+//! no error channel, so Rust validates inputs and handles the only nullable
+//! result locally.
 
 #[link(name = "xfce4util")]
 unsafe extern "C" {
@@ -31,7 +36,9 @@ pub(crate) fn version() -> String {
 ///
 /// `xfce_textdomain` copies or internally registers all three strings before
 /// returning. It changes process-global localization state, so callers must
-/// invoke this once during startup before worker threads are created.
+/// invoke this once during startup before worker threads are created. The
+/// function is available in the minimum supported Xfce 4.18 and has no native
+/// error result; this wrapper reports only invalid Rust strings.
 pub(crate) fn textdomain(package: &str, locale_dir: &str, encoding: &str) -> Result<(), String> {
     let package = std::ffi::CString::new(package).map_err(|_| "gettext domain contains NUL")?;
     let locale_dir = std::ffi::CString::new(locale_dir).map_err(|_| "locale path contains NUL")?;

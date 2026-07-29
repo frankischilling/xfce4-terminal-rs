@@ -60,6 +60,7 @@ rust_sources = files(
   '../tests/cli_parity.rs',
   '../tests/cli_process.rs',
   '../tests/reference/BASELINE',
+  '../tests/reference/accelerator-contract.tsv',
   '../tests/reference/Containerfile',
   '../tests/reference/build-options-probe.sh',
   '../tests/reference/build-application-call-probe.sh',

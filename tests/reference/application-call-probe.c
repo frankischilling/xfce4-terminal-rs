@@ -21,6 +21,22 @@ static gchar gettext_domain[128];
 static gchar locale_directory[4096];
 static gchar gettext_charset[128];
 
+static void
+print_accelerator (gpointer data,
+                   const gchar *accel_path,
+                   guint accel_key,
+                   GdkModifierType accel_mods,
+                   gboolean changed)
+{
+  gchar *accelerator = gtk_accelerator_name (accel_key, accel_mods);
+
+  (void) data;
+  (void) changed;
+  dprintf (STDOUT_FILENO, "accelerator\t%s\t%s\n",
+           accel_path, accelerator);
+  g_free (accelerator);
+}
+
 void
 xfce_textdomain (const gchar *domain,
                  const gchar *locale_dir,
@@ -55,5 +71,6 @@ gtk_accel_map_load (const gchar *file_name)
   dprintf (STDOUT_FILENO, "locale-directory\t%s\n", locale_directory);
   dprintf (STDOUT_FILENO, "gettext-charset\t%s\n", gettext_charset);
   dprintf (STDOUT_FILENO, "accelerator-file\t%s\n", file_name);
+  gtk_accel_map_foreach (NULL, print_accelerator);
   _exit (0);
 }

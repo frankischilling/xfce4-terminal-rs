@@ -32,6 +32,10 @@ small FFI wrapper. Reads return the C default when Xfconf has no stored value.
 Writes reject the wrong type, out-of-range numbers, non-finite doubles, and
 unknown enum constants before calling libxfconf.
 
+Reads preserve the C class's compatibility conversions. For example, an
+unsigned Xfconf value stored for a string property is returned as its decimal
+text instead of being treated as missing.
+
 Libxfconf caches channel values. An update from another process becomes
 visible after the GLib main context dispatches the channel's
 `property-changed` signal. GTK controllers must therefore use `Preferences`
@@ -67,7 +71,9 @@ that edge case.
 
 GTK accelerator maps use
 `$XDG_CONFIG_HOME/xfce4/terminal/accels.scm`. The Rust wrapper loads and saves
-GTK's native accelerator-map format on the initialized GTK main thread.
+GTK's native accelerator-map format on the initialized GTK main thread. It
+also exposes all 65 frozen window and terminal-widget paths with their default
+shortcuts.
 
 Meson installs the eight built-in color schemes under
 `share/xfce4/terminal/colorschemes`. The public color reader combines installed
@@ -93,7 +99,9 @@ properties, observes a write from a separate Xfconf client, and exercises old
 file migration without touching the user's channel.
 
 `tests/accelerator_round_trip.rs` saves and loads GTK's accelerator map under
-Xvfb and proves that loading restores a changed shortcut.
+Xvfb, registers every frozen default, and proves that loading restores a
+changed shortcut. Protected CI reads the public GTK accelerator map from the
+frozen executable and Rust probe, then compares all 65 paths and shortcuts.
 `tests/reference/application-calls.sh` observes the frozen application and the
 Rust probe as separate processes. It compares the gettext domain, locale
 directory, character set, and accelerator filename passed to their native

@@ -7,10 +7,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     xfce4_terminal::localization::initialize()?;
     gtk::init()?;
     let accel_path = "<Actions>/terminal-window/new-tab";
-    let default = gtk::accelerator_parse("<Primary>F11");
     let saved = gtk::accelerator_parse("<Primary>F12");
     let changed = gtk::accelerator_parse("<Primary>F10");
-    xfce4_terminal::accelerators::add_entry(accel_path, default.0, default.1)?;
+    xfce4_terminal::accelerators::register_defaults()?;
+    for definition in xfce4_terminal::accelerators::definitions() {
+        assert_eq!(
+            xfce4_terminal::accelerators::lookup_entry(definition.path)?,
+            Some(gtk::accelerator_parse(definition.default_accelerator))
+        );
+    }
+    if std::env::var_os("XFCE4_TERMINAL_ACCELERATOR_CONTRACT_ONLY").is_some() {
+        xfce4_terminal::accelerators::load(Path::new(&config_home))?;
+        return Ok(());
+    }
     assert!(xfce4_terminal::accelerators::change_entry(
         accel_path, saved.0, saved.1
     )?);

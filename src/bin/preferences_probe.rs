@@ -121,6 +121,35 @@ fn check_migration_scenario(
                 PreferenceValue::String(Some("Terminal".to_owned()))
             );
         }
+        "uint-string-conversion" => {
+            let status = Command::new("xfconf-query")
+                .args([
+                    "--channel",
+                    "xfce4-terminal",
+                    "--property",
+                    "/title-initial",
+                    "--create",
+                    "--type",
+                    "uint",
+                    "--set",
+                    "42",
+                ])
+                .status()?;
+            assert!(status.success());
+
+            let expected = PreferenceValue::String(Some("42".to_owned()));
+            let context = glib::MainContext::default();
+            let deadline = Instant::now() + Duration::from_secs(5);
+            let observed = loop {
+                let _ = context.iteration(false);
+                let observed = preferences.get("title-initial")?;
+                if observed == expected || Instant::now() >= deadline {
+                    break observed;
+                }
+                thread::sleep(Duration::from_millis(10));
+            };
+            assert_eq!(observed, expected);
+        }
         _ => return Err(format!("unknown preference probe scenario {scenario:?}").into()),
     }
     Ok(())
