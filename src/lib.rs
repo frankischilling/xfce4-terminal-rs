@@ -7,6 +7,7 @@
 mod ffi;
 
 pub mod accelerators;
+pub mod child;
 pub mod cli;
 pub mod colors;
 pub mod links;

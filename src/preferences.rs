@@ -61,6 +61,13 @@ pub struct Preferences {
 #[derive(Debug, PartialEq)]
 pub struct PreferenceError(String);
 
+impl PreferenceError {
+    /// Describes a preference request that a channel cannot satisfy.
+    pub fn new(message: impl Into<String>) -> Self {
+        Self(message.into())
+    }
+}
+
 impl std::fmt::Display for PreferenceError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str(&self.0)

@@ -1,6 +1,7 @@
-//! Safe wrappers for the small libc surface used by the option parser.
+//! Safe wrappers for the small libc surface the port needs.
 
-use std::ffi::CString;
+use std::ffi::{CStr, CString, OsStr, OsString};
+use std::os::unix::ffi::{OsStrExt, OsStringExt};
 
 /// Parses an integer with the same deliberately permissive rules as the C
 /// parser.
@@ -25,6 +26,58 @@ pub(crate) fn strtol_i32(value: &str) -> i32 {
 pub(crate) fn strtoul_u32(value: &str) -> u32 {
     let value = CString::new(value).unwrap_or_default();
     unsafe { ::libc::strtoul(value.as_ptr(), std::ptr::null_mut(), 10) as u32 }
+}
+
+/// Reports whether the process still runs as the user who started it.
+///
+/// The reference trusts the `SHELL` variable only then, so that a terminal
+/// installed set-user-id or set-group-id cannot be told to run something else.
+pub(crate) fn privileges_unchanged() -> bool {
+    // SAFETY: these four calls read the identity of the calling process, take
+    // no arguments, and cannot fail.
+    unsafe { ::libc::geteuid() == ::libc::getuid() && ::libc::getegid() == ::libc::getgid() }
+}
+
+/// Reports whether a path may be executed, as `access(path, X_OK)` does.
+///
+/// The answer describes the moment of the call, so it says only that the file
+/// looked executable then. The reference accepts the same race: it tests a
+/// shell before handing it to VTE, which runs it later.
+pub(crate) fn is_executable(path: &OsStr) -> bool {
+    let Ok(path) = CString::new(path.as_bytes()) else {
+        return false;
+    };
+
+    // SAFETY: the path owns its bytes for the whole call and libc does not
+    // retain the pointer.
+    unsafe { ::libc::access(path.as_ptr(), ::libc::X_OK) == 0 }
+}
+
+/// Returns the login shell the password database records for this user.
+///
+/// `getpwuid` answers from a buffer it owns and reuses, so the wrapper copies
+/// the shell before returning and holds no pointer of its own. An entry that
+/// does not exist, or that records no shell, is reported as absent.
+pub(crate) fn password_database_shell() -> Option<OsString> {
+    // SAFETY: the call takes a user id and returns either null or a pointer to
+    // its own storage, which stays valid until the next call in this thread.
+    let entry = unsafe { ::libc::getpwuid(::libc::getuid()) };
+    if entry.is_null() {
+        return None;
+    }
+
+    // SAFETY: a non-null entry points at an initialized structure whose
+    // pw_shell field is either null or a NUL-terminated string in the same
+    // storage.
+    let shell = unsafe { (*entry).pw_shell };
+    if shell.is_null() {
+        return None;
+    }
+
+    // SAFETY: the shell is NUL terminated and stays valid for this copy.
+    Some(OsString::from_vec(
+        unsafe { CStr::from_ptr(shell) }.to_bytes().to_vec(),
+    ))
 }
 
 /// Parses a legacy terminalrc floating-point value.

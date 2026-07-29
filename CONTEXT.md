@@ -36,6 +36,14 @@ visibility, state, font, zoom level, and drop-down mode.
 The parsed settings for one terminal tab, including its command, working
 directory, title behavior, colors, active state, and hold behavior.
 
+### Spawn request
+
+Everything a screen settles before VTE forks: the file to execute, the argument
+vector that file receives, the spawn flags that describe that vector, and the
+environment the child inherits. A tab specification can name the command
+outright; otherwise the preferences choose between their own command line and
+the user's login shell.
+
 ### Terminal server
 
 The first process that owns `org.xfce.Terminal5` on the session bus. Later

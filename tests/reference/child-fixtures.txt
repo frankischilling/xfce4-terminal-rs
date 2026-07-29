@@ -1,0 +1,37 @@
+# Scenarios for the spawn request a terminal screen builds.
+#
+# A command scenario names the "command-login-shell" and "run-custom-command"
+# preferences, the "custom-command" preference, and then the screen's own
+# command, one argument per field. An environment scenario asks for the child
+# environment of a screen with no realized toplevel, or of one inside a
+# realized window.
+#
+# The login shell is resolved from the process environment and the password
+# database, so tests/reference/child-process.sh repeats this corpus with
+# several login shells.
+command	false	false	
+command	true	false	
+command	false	true	/bin/echo hello world
+command	true	true	/bin/echo hello
+command	false	true	echo
+command	true	true	echo
+command	false	true	
+command	false	true	 
+command	true	true	 
+command	false	true	'quoted command' argument
+command	false	true	/bin/
+command	true	true	/bin/
+command	false	true	/
+command	true	true	/
+command	false	true	.
+command	false	true	echo 'unbalanced
+command	false	true	echo \
+command	false	true	echo "double" 'single' bare
+command	false	true	echo #comment
+command	false	true	échò argument
+command	false	false	/bin/echo ignored
+command	false	true	/bin/echo preference	/bin/ls	-l	a b
+command	true	true	/bin/echo preference	/bin/ls
+command	false	false		true
+environment	plain
+environment	realized

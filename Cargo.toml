@@ -31,6 +31,10 @@ path = "src/bin/accelerator_probe.rs"
 name = "xfce4-terminal-link-probe"
 path = "src/bin/link_probe.rs"
 
+[[bin]]
+name = "xfce4-terminal-child-probe"
+path = "src/bin/child_probe.rs"
+
 [profile.release]
 lto = "thin"
 strip = true
