@@ -1,6 +1,8 @@
 use std::fs;
 use std::process::Command;
 
+use xfce4_terminal::preferences::{PreferenceKind, PreferenceValue, definitions};
+
 mod support;
 
 use support::TempDirectory;
@@ -24,6 +26,22 @@ fn old_terminalrc_values_migrate_into_an_isolated_xfconf_service() {
         terminalrc.push_str(&format!("ColorPalette{index}=#{index:06x}\n"));
     }
     run_isolated_probe(Some(&terminalrc), Some("valid-migration"));
+}
+
+#[test]
+fn every_terminalrc_mapping_migrates_into_an_isolated_xfconf_service() {
+    let mut terminalrc = String::from("[Configuration]\n");
+    for definition in definitions() {
+        terminalrc.push_str(definition.legacy_key);
+        terminalrc.push('=');
+        terminalrc.push_str(&legacy_source(definition));
+        terminalrc.push('\n');
+    }
+    let key_file = glib::KeyFile::new();
+    key_file
+        .load_from_data(&terminalrc, glib::KeyFileFlags::NONE)
+        .expect("parse generated terminalrc");
+    run_isolated_probe(Some(&terminalrc), Some("all-mappings"));
 }
 
 #[test]
@@ -76,4 +94,49 @@ fn run_isolated_probe(terminalrc: Option<&str>, scenario: Option<&str>) {
         .expect("run preference probe on a private session bus");
 
     assert!(status.success());
+}
+
+fn legacy_source(definition: &xfce4_terminal::preferences::PreferenceDefinition) -> String {
+    match &definition.kind {
+        PreferenceKind::Boolean => match definition.default_value() {
+            PreferenceValue::Boolean(true) => "FALSE".to_owned(),
+            PreferenceValue::Boolean(false) => "TRUE".to_owned(),
+            _ => unreachable!(),
+        },
+        PreferenceKind::String if definition.legacy_key == "Encoding" => "UTF-8".to_owned(),
+        PreferenceKind::String => format!("legacy:{}", definition.name),
+        PreferenceKind::Unsigned { minimum, maximum } => {
+            let PreferenceValue::Unsigned(default) = definition.default_value() else {
+                unreachable!()
+            };
+            if default == *minimum {
+                maximum
+            } else {
+                minimum
+            }
+            .to_string()
+        }
+        PreferenceKind::Double { minimum, maximum } => {
+            let PreferenceValue::Double(default) = definition.default_value() else {
+                unreachable!()
+            };
+            if default == *minimum {
+                maximum
+            } else {
+                minimum
+            }
+            .to_string()
+        }
+        PreferenceKind::Enumeration { values, .. } => {
+            let PreferenceValue::Enumeration(default) = definition.default_value() else {
+                unreachable!()
+            };
+            values
+                .iter()
+                .copied()
+                .find(|value| *value != default)
+                .unwrap_or(values[0])
+                .to_owned()
+        }
+    }
 }

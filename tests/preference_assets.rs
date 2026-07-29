@@ -1,3 +1,4 @@
+use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 
 use xfce4_terminal::{accelerators, colors, localization};
@@ -62,11 +63,40 @@ fn all_builtin_color_schemes_load_through_the_public_reader() {
 fn installed_and_user_color_schemes_share_one_sorted_model() {
     let root = TempDirectory::new("xfce4-terminal-colors");
     let data = root.path().join("data/xfce4/terminal/colorschemes");
+    let fallback_data = root
+        .path()
+        .join("fallback-data/xfce4/terminal/colorschemes");
     let config = root.path().join("config/xfce4/terminal/colorschemes");
     std::fs::create_dir_all(&data).expect("create data schemes");
+    std::fs::create_dir_all(&fallback_data).expect("create fallback data schemes");
     std::fs::create_dir_all(&config).expect("create user schemes");
     std::fs::write(data.join("global.theme"), "[Scheme]\nName=Global\n")
         .expect("write global scheme");
+    std::fs::write(
+        fallback_data.join("global.theme"),
+        "[Scheme]\nName=Shadowed global\n",
+    )
+    .expect("write shadowed global scheme");
+    std::fs::write(
+        fallback_data.join("fallback.theme"),
+        "[Scheme]\nName=Fallback\n",
+    )
+    .expect("write fallback scheme");
+    std::fs::create_dir(data.join("directory.theme")).expect("create directory match");
+    std::fs::write(
+        fallback_data.join("directory.theme"),
+        "[Scheme]\nName=Regular fallback\n",
+    )
+    .expect("write regular fallback scheme");
+    let symlink_source = root.path().join("symlink-source.theme");
+    std::fs::write(&symlink_source, "[Scheme]\nName=Symlink primary\n")
+        .expect("write symlink source");
+    symlink(&symlink_source, data.join("symlink.theme")).expect("create scheme symlink");
+    std::fs::write(
+        fallback_data.join("symlink.theme"),
+        "[Scheme]\nName=Shadowed symlink\n",
+    )
+    .expect("write shadowed symlink scheme");
     std::fs::write(config.join("user.theme"), "[Scheme]\nName=Custom\n")
         .expect("write user scheme");
     std::fs::write(
@@ -82,14 +112,24 @@ fn installed_and_user_color_schemes_share_one_sorted_model() {
     std::fs::write(config.join("invalid.theme"), "not a key file")
         .expect("write unreadable scheme");
 
-    let schemes = colors::discover(&[root.path().join("data")], &root.path().join("config"))
-        .expect("discover schemes");
+    let schemes = colors::discover(
+        &[root.path().join("data"), root.path().join("fallback-data")],
+        &root.path().join("config"),
+    )
+    .expect("discover schemes");
 
     assert_eq!(
         schemes
             .iter()
             .map(|scheme| scheme.name.as_str())
             .collect::<Vec<_>>(),
-        ["Any filename", "Custom", "Global"]
+        [
+            "Any filename",
+            "Custom",
+            "Fallback",
+            "Global",
+            "Regular fallback",
+            "Symlink primary",
+        ]
     );
 }

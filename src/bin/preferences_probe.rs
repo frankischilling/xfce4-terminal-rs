@@ -69,6 +69,16 @@ fn check_migration_scenario(
     scenario: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match scenario {
+        "all-mappings" => {
+            for definition in definitions() {
+                assert_eq!(
+                    preferences.get(definition.name)?,
+                    legacy_round_trip_value(definition),
+                    "legacy key {:?}",
+                    definition.legacy_key
+                );
+            }
+        }
         "valid-migration" => {
             assert_eq!(
                 preferences.get("misc-bell")?,
@@ -153,6 +163,56 @@ fn check_migration_scenario(
         _ => return Err(format!("unknown preference probe scenario {scenario:?}").into()),
     }
     Ok(())
+}
+
+fn legacy_round_trip_value(
+    definition: &xfce4_terminal::preferences::PreferenceDefinition,
+) -> PreferenceValue {
+    match &definition.kind {
+        PreferenceKind::Boolean => match definition.default_value() {
+            PreferenceValue::Boolean(default) => PreferenceValue::Boolean(!default),
+            _ => unreachable!(),
+        },
+        PreferenceKind::String if definition.legacy_key == "Encoding" => {
+            PreferenceValue::String(Some("UTF-8".to_owned()))
+        }
+        PreferenceKind::String => {
+            PreferenceValue::String(Some(format!("legacy:{}", definition.name)))
+        }
+        PreferenceKind::Unsigned { minimum, maximum } => {
+            let PreferenceValue::Unsigned(default) = definition.default_value() else {
+                unreachable!()
+            };
+            PreferenceValue::Unsigned(if default == *minimum {
+                *maximum
+            } else {
+                *minimum
+            })
+        }
+        PreferenceKind::Double { minimum, maximum } => {
+            let PreferenceValue::Double(default) = definition.default_value() else {
+                unreachable!()
+            };
+            PreferenceValue::Double(if default == *minimum {
+                *maximum
+            } else {
+                *minimum
+            })
+        }
+        PreferenceKind::Enumeration { values, .. } => {
+            let PreferenceValue::Enumeration(default) = definition.default_value() else {
+                unreachable!()
+            };
+            PreferenceValue::Enumeration(
+                values
+                    .iter()
+                    .copied()
+                    .find(|value| *value != default)
+                    .unwrap_or(values[0])
+                    .to_owned(),
+            )
+        }
+    }
 }
 
 fn display_value(value: &PreferenceValue) -> String {

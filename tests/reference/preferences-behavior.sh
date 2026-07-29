@@ -54,6 +54,43 @@ write_unreadable_legacy_file()
   printf '%s\n' 'this is not a key file' > "$legacy_dir/terminalrc"
 }
 
+write_all_legacy_file()
+{
+  root=$1
+  contract=$2
+  legacy_dir=$root/config/Terminal
+  mkdir -p "$legacy_dir"
+  awk -F '\t' '
+    BEGIN {
+      print "[Configuration]"
+    }
+    {
+      if ($2 == "boolean")
+        value = $3 == "true" ? "FALSE" : "TRUE"
+      else if ($2 == "string")
+        value = $5 == "Encoding" ? "UTF-8" : "legacy:" $1
+      else if ($2 == "uint" || $2 == "double")
+        {
+          split($4, bounds, ":")
+          value = $3 == bounds[1] ? bounds[2] : bounds[1]
+        }
+      else
+        {
+          sub(/^enum:/, "", $2)
+          count = split($4, values, ",")
+          value = values[1]
+          for (item = 1; item <= count; item++)
+            if (values[item] != $3)
+              {
+                value = values[item]
+                break
+              }
+        }
+      print $5 "=" value
+    }
+  ' "$contract" > "$legacy_dir/terminalrc"
+}
+
 run_probe()
 {
   probe=$1
@@ -107,6 +144,19 @@ run_probe "$reference_probe" "$test_root/reference-default" \
 run_probe "$candidate_probe" "$test_root/candidate-default" \
   "$test_root/candidate-default.tsv"
 diff -u "$test_root/reference-default.tsv" "$test_root/candidate-default.tsv"
+
+"$reference_probe" > "$test_root/preferences-contract.tsv"
+mkdir -p "$test_root/reference-all-mappings" "$test_root/candidate-all-mappings"
+write_all_legacy_file "$test_root/reference-all-mappings" \
+  "$test_root/preferences-contract.tsv"
+write_all_legacy_file "$test_root/candidate-all-mappings" \
+  "$test_root/preferences-contract.tsv"
+run_probe "$reference_probe" "$test_root/reference-all-mappings" \
+  "$test_root/reference-all-mappings.tsv"
+run_probe "$candidate_probe" "$test_root/candidate-all-mappings" \
+  "$test_root/candidate-all-mappings.tsv"
+diff -u "$test_root/reference-all-mappings.tsv" \
+  "$test_root/candidate-all-mappings.tsv"
 
 mkdir -p "$test_root/reference-migration" "$test_root/candidate-migration"
 write_legacy_file "$test_root/reference-migration"
