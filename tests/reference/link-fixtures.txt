@@ -1,0 +1,63 @@
+# Candidate link strings for the C-versus-Rust link comparison.
+#
+# Each remaining line is one candidate, taken verbatim without the trailing
+# newline. A leading "#" marks a comment, and an empty line means the empty
+# candidate.
+https://example.com/path
+http://example.com
+HTTP://EXAMPLE.COM
+http://example.com:8080/search?q=a&r=b
+http://example.com:67890/
+http://user@example.com/
+http://user:secret@example.com/
+http://1.2.3.4/
+http://1.2.3.4567/
+http://[::1]/
+http://[dead:beef::1.2.3.4]/
+http://[::]/
+news://news.example.com/comp.lang.c
+telnet://example.com
+nntp://news.example.com
+ftp://ftp.example.com/pub
+ftps://example.com
+sftp://example.com
+webcal://example.com/calendar.ics
+gopher://example.com
+www.example.com
+www.example.com:81/path
+ftp.example.com/pub
+abc.www.example.com
+example.com
+1234.com
+foo.123
+user@example.com
+mailto:user@example.com
+MAILTO:user@example.com
+user.name+tag@example.co.uk
+user@[1.2.3.4]
+user@[::1]
+user@localhost
+file:///tmp/example
+file:///tmp/with space
+file://localhost/tmp/example
+file://elsewhere.invalid/tmp/example
+file:/tmp/example
+file://
+news:comp.lang.c
+man:ls
+man:ls(1)
+info:coreutils
+magnet:?xt=urn:btih:0123456789abcdef
+h323:user@example.com
+sips:user@example.com
+http://example.com/path(with)parens
+http://example.com/path(unbalanced
+http://example.com/trailing.
+http://example.com/trailing'
+'http://example.com/quoted'
+http://exämple.com/päth
+http://example.com/page#fragment
+localhost:8080
+not a link
+# The next line is the empty candidate.
+

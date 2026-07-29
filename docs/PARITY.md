@@ -10,7 +10,8 @@ parity on its own.
 | Build foundation | Cargo and Meson build the Rust candidate; CI can build the frozen C revision | Complete |
 | Command line | Exit status, stdout, stderr, and parsed launch specifications | Complete |
 | Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | Complete |
-| Terminal screen | PTY environment, child lifecycle, titles, colors, search, links, paste, and scrolling | Not started |
+| Terminal links | Registered patterns, classification order, opened URI, clickable file hosts, and copied text | Complete |
+| Terminal screen | PTY environment, child lifecycle, titles, colors, search, paste, scrolling, and match highlighting | Not started |
 | Window interface | Windows, tabs, menus, toolbar, shortcuts, focus, drag and drop, and confirmations | Not started |
 | Application service | Multi-window reuse, session state, and the `org.xfce.Terminal5` wire contract | Not started |
 | Drop-down mode | Placement, animation, monitor changes, focus, X11, and Wayland layer shell | Not started |
@@ -22,6 +23,11 @@ parity on its own.
 `tests/reference/Containerfile` to pin the native build environment.
 `tests/reference/differential.sh` captures exit status, standard output, and
 standard error from both programs.
+
+Some reference behavior lives in file-private functions. A probe for those
+includes the frozen source file and links the rest of the frozen objects, and
+`tests/reference/probe-command.py` recovers the compile flags and link line from
+the reference build so the probe matches the frozen binary's build options.
 
 ## Rules
 

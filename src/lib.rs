@@ -9,6 +9,7 @@ mod ffi;
 pub mod accelerators;
 pub mod cli;
 pub mod colors;
+pub mod links;
 pub mod localization;
 pub mod preferences;
 pub mod reference;

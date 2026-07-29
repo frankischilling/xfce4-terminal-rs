@@ -34,6 +34,7 @@ jobs:
           sudo apt-get install --yes \
             libgtk-3-dev \
             libgtk-layer-shell-dev \
+            libpcre2-dev \
             libvte-2.91-dev \
             libxfce4ui-2-dev \
             libxfconf-0-dev \
@@ -99,17 +100,21 @@ jobs:
           reference_binary="$RUNNER_TEMP/xfce4-terminal-reference/build/terminal/xfce4-terminal"
           reference_options="$RUNNER_TEMP/xfce4-terminal-reference/build/options-probe"
           reference_preferences="$RUNNER_TEMP/xfce4-terminal-reference/build/preferences-probe"
+          reference_links="$RUNNER_TEMP/xfce4-terminal-reference/build/link-probe"
           reference_call_probe="$RUNNER_TEMP/xfce4-terminal-reference/build/application-call-probe.so"
           candidate_options="./build/rust/cargo-target/release/xfce4-terminal-options-probe"
           candidate_preferences="./build/rust/cargo-target/release/xfce4-terminal-preferences-probe"
           candidate_accelerators="./build/rust/cargo-target/release/xfce4-terminal-accelerator-probe"
+          candidate_links="./build/rust/cargo-target/release/xfce4-terminal-link-probe"
           test -x "$reference_binary"
           test -x "$reference_options"
           test -x "$reference_preferences"
+          test -x "$reference_links"
           test -f "$reference_call_probe"
           test -x "$candidate_options"
           test -x "$candidate_preferences"
           test -x "$candidate_accelerators"
+          test -x "$candidate_links"
 
           XFCE4_TERMINAL_REFERENCE_PREFERENCES_PROBE="$reference_preferences" \
             cargo test --test preferences_parity --locked
@@ -120,6 +125,9 @@ jobs:
             "$reference_binary" \
             "$candidate_accelerators" \
             "$reference_call_probe"
+          tests/reference/link-matching.sh \
+            "$reference_links" \
+            "$candidate_links"
 
           mkdir "$RUNNER_TEMP/xfce4-terminal-candidate-install"
           DESTDIR="$RUNNER_TEMP/xfce4-terminal-candidate-install" \
