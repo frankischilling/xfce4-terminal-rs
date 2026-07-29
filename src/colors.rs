@@ -60,9 +60,10 @@ pub fn discover(
         for entry in entries.flatten() {
             if std::fs::metadata(entry.path()).is_ok_and(|metadata| metadata.is_file())
                 && matched_names.insert(entry.file_name())
-                && let Ok(scheme) = load_file(entry.path())
             {
-                schemes.push(scheme);
+                if let Ok(scheme) = load_file(entry.path()) {
+                    schemes.push(scheme);
+                }
             }
         }
     }
