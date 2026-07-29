@@ -9,7 +9,7 @@ parity on its own.
 | --- | --- | --- |
 | Build foundation | Cargo and Meson build the Rust candidate; CI can build the frozen C revision | Complete |
 | Command line | Exit status, stdout, stderr, and parsed launch specifications | Complete |
-| Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | In progress |
+| Preferences | Property names, types, defaults, Xfconf updates, legacy import, and accelerators | Complete |
 | Terminal screen | PTY environment, child lifecycle, titles, colors, search, links, paste, and scrolling | Not started |
 | Window interface | Windows, tabs, menus, toolbar, shortcuts, focus, drag and drop, and confirmations | Not started |
 | Application service | Multi-window reuse, session state, and the `org.xfce.Terminal5` wire contract | Not started |
