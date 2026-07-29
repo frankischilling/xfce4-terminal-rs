@@ -51,3 +51,25 @@ run_probe()
 run_probe "$test_root/reference.tsv" "$reference_probe"
 run_probe "$test_root/candidate.tsv" "$candidate_probe"
 diff -u "$test_root/reference.tsv" "$test_root/candidate.tsv"
+
+shared_root=$test_root/shared-root
+mkdir -p "$shared_root/$relative"
+printf '%s\n' '[Scheme]' 'Name=Shared root' > "$shared_root/$relative/shared.theme"
+
+run_shared_probe()
+{
+  output=$1
+  probe=$2
+  env \
+    XDG_DATA_HOME="$shared_root" \
+    XDG_DATA_DIRS="$data_fallback" \
+    XDG_CONFIG_HOME="$shared_root" \
+    XDG_CONFIG_DIRS="$config_fallback" \
+    "$probe" \
+    | awk -F '\t' -v root="$shared_root/" 'index($2, root) == 1' \
+    | sort > "$output"
+}
+
+run_shared_probe "$test_root/reference-shared.tsv" "$reference_probe"
+run_shared_probe "$test_root/candidate-shared.tsv" "$candidate_probe"
+diff -u "$test_root/reference-shared.tsv" "$test_root/candidate-shared.tsv"
