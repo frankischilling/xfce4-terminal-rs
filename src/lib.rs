@@ -14,6 +14,7 @@ pub mod links;
 pub mod localization;
 pub mod preferences;
 pub mod reference;
+pub mod screen;
 
 /// The GLib log domain the reference builds with, from `terminal/meson.build`.
 pub const LOG_DOMAIN: &str = "xfce4-terminal";
