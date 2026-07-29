@@ -40,7 +40,7 @@ fn only_the_news_and_man_pattern_omits_the_shared_definitions() {
             pattern
                 .pattern
                 .starts_with("(?<APOS_START>(?<='))?(?(DEFINE)"),
-            index != 4,
+            index != links::NEWS_MAN_INDEX,
             "pattern {index} has the wrong prefix"
         );
     }
@@ -112,6 +112,43 @@ fn only_a_remote_file_uri_is_unclickable() {
         assert_eq!(
             links::is_clickable(candidate, kind),
             clickable,
+            "candidate {candidate:?}"
+        );
+    }
+}
+
+#[test]
+fn a_remote_host_is_read_even_when_the_path_cannot_be_unescaped() {
+    // GLib reports the host as soon as it has validated the authority, and only
+    // then unescapes the path. It rejects an escaped separator and an invalid
+    // escape, yet the reference still refuses these because it reads the host
+    // on its own rather than through the conversion's success.
+    let expected = [
+        ("file://elsewhere.invalid/pub/doc%2Fa", false),
+        ("file://elsewhere.invalid/tmp/50%discount", false),
+        ("file://elsewhere.invalid/tmp/%zz", false),
+        ("file://localhost/pub/doc%2Fa", true),
+        // An empty host is not reported at all, so the URI counts as local.
+        ("file:///pub/doc%2Fa", true),
+    ];
+
+    for (candidate, clickable) in expected {
+        assert_eq!(
+            links::is_clickable(candidate, Some(LinkKind::File)),
+            clickable,
+            "candidate {candidate:?}"
+        );
+    }
+}
+
+#[test]
+fn a_host_naming_this_machine_stays_clickable() {
+    let host = glib::host_name();
+
+    for host in [host.to_string(), host.to_ascii_uppercase()] {
+        let candidate = format!("file://{host}/tmp/example");
+        assert!(
+            links::is_clickable(&candidate, Some(LinkKind::File)),
             "candidate {candidate:?}"
         );
     }

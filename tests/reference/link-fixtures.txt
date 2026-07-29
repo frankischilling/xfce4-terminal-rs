@@ -43,6 +43,14 @@ file://localhost/tmp/example
 file://elsewhere.invalid/tmp/example
 file:/tmp/example
 file://
+# A host is reported even when the path stops the conversion, so these have to
+# stay unopenable. An escaped separator, an invalid escape, and a stray percent
+# each defeat the unescaping step that runs after the host is validated.
+file://elsewhere.invalid/pub/doc%2Fa
+file://elsewhere.invalid/tmp/%zz
+file://elsewhere.invalid/tmp/50%discount
+file://localhost/pub/doc%2Fa
+file:///pub/doc%2Fa
 news:comp.lang.c
 man:ls
 man:ls(1)

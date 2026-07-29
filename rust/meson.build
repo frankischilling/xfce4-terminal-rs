@@ -42,6 +42,7 @@ rust_sources = files(
   '../src/bin/preferences_probe.rs',
   '../src/cli.rs',
   '../src/colors.rs',
+  '../src/ffi/glib.rs',
   '../src/ffi/gtk.rs',
   '../src/ffi/libc.rs',
   '../src/ffi/mod.rs',

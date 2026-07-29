@@ -1,26 +1,30 @@
 //! Safe wrappers for the PCRE2 calls that classify terminal links.
 //!
-//! The wrappers target the 8-bit PCRE2 interface of the system library, the
-//! same one VTE and the C reference link against. A compiled pattern owns its
-//! native code block and frees it on drop. PCRE2 keeps no global state and
-//! never alters a compiled pattern while matching, so a pattern may be shared
-//! between threads; each match allocates and releases its own match data
-//! instead. Subjects are borrowed for the duration of a call, and no native
-//! pointer escapes these functions.
+//! Every wrapper in this module targets the 8-bit interface of PCRE2 10.00 or
+//! newer, the same library VTE and the C reference link against. A compiled
+//! pattern owns its native code block and frees it on drop. PCRE2 keeps no
+//! global state and never alters a compiled pattern while matching, so a pattern
+//! may be shared between threads; each match allocates and releases its own
+//! match data instead. Subjects are borrowed for the duration of a call, and no
+//! native pointer escapes these functions. Failures are reported as PCRE2's own
+//! error numbers, which is what the reference logs.
 
 use std::ffi::{c_int, c_void};
 
 /// PCRE2's report that a subject does not match.
 const ERROR_NOMATCH: c_int = -1;
 
+/// PCRE2's report that it could not obtain memory.
+const ERROR_NOMEMORY: c_int = -48;
+
 #[repr(C)]
 struct Code {
-    _opaque: [u8; 0],
+    _private: [u8; 0],
 }
 
 #[repr(C)]
 struct MatchData {
-    _opaque: [u8; 0],
+    _private: [u8; 0],
 }
 
 #[link(name = "pcre2-8")]
@@ -72,6 +76,10 @@ impl Pattern {
     pub(crate) fn compile(pattern: &str, options: u32) -> Result<Self, i32> {
         let mut error_code: c_int = 0;
         let mut error_offset: usize = 0;
+        // SAFETY: the pattern is passed with its own length rather than as a
+        // NUL-terminated string, so an interior NUL cannot truncate it, and it
+        // stays alive for the whole call. Both out-parameters point at live
+        // stack slots that PCRE2 writes only on failure.
         let code = unsafe {
             pcre2_compile_8(
                 pattern.as_ptr(),
@@ -96,12 +104,16 @@ impl Pattern {
     /// subject cannot outlive the native state that refers to it. Match
     /// failures other than "no match" are returned as the native error number.
     pub(crate) fn matches(&self, subject: &str) -> Result<bool, i32> {
+        // SAFETY: the code block is non-null for as long as `self` lives, and
+        // PCRE2 reads it without altering it.
         let match_data =
             unsafe { pcre2_match_data_create_from_pattern_8(self.code, std::ptr::null_mut()) };
         if match_data.is_null() {
-            return Err(0);
+            return Err(ERROR_NOMEMORY);
         }
 
+        // SAFETY: the subject is passed with its own length and outlives the
+        // call, and the match data block was created from this same pattern.
         let result = unsafe {
             pcre2_match_8(
                 self.code,
@@ -113,6 +125,8 @@ impl Pattern {
                 std::ptr::null_mut(),
             )
         };
+        // SAFETY: the block was allocated above, has not been freed, and is not
+        // used again.
         unsafe { pcre2_match_data_free_8(match_data) };
 
         match result {
@@ -125,6 +139,9 @@ impl Pattern {
 
 impl Drop for Pattern {
     fn drop(&mut self) {
+        // SAFETY: the code block was obtained from `pcre2_compile_8`, is only
+        // freed here, and `Pattern` is neither `Copy` nor `Clone`, so no other
+        // owner can free it.
         unsafe { pcre2_code_free_8(self.code) };
     }
 }

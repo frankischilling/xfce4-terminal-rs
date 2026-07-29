@@ -55,5 +55,8 @@ grep -q '	email$' "$test_root/reference.tsv"
 grep -q '	file$' "$test_root/reference.tsv"
 grep -q '	none$' "$test_root/reference.tsv"
 grep -q '^clickable	file://.*	false$' "$test_root/reference.tsv"
+# A remote host has to stay refused even when the path defeats the unescaping
+# step that runs after the host is validated.
+grep -q '^clickable	file://elsewhere\.invalid/pub/doc%2Fa	false$' "$test_root/reference.tsv"
 # A candidate outside ASCII has to survive with its own bytes.
 grep -qF 'classify	http://exämple.com/päth	full-http' "$test_root/reference.tsv"

@@ -362,6 +362,13 @@ pub const PATTERNS: [LinkPattern; 5] = [
     },
 ];
 
+/// The position of the only pattern that carries no shared definitions.
+///
+/// The other four begin with the same block of subroutines, because they share
+/// the host and path fragments. `NEWS_MAN` matches a scheme and the rest of the
+/// line, so it needs none of them.
+pub const NEWS_MAN_INDEX: usize = 4;
+
 /// The scheme prefix the reference prepends to a mail address.
 const MAILTO: &str = "mailto:";
 
@@ -399,16 +406,24 @@ pub fn compile_errors() -> Vec<(usize, i32)> {
 /// Classifies a candidate by the first pattern that matches it.
 ///
 /// A match may start anywhere in the candidate, which is how the reference
-/// classifies the target of an escape-sequence hyperlink. A pattern that
-/// cannot be compiled or that fails to run is skipped, so classification falls
-/// through to the following pattern.
+/// classifies the target of an escape-sequence hyperlink. A pattern that cannot
+/// be compiled or that fails to run is skipped, so classification falls through
+/// to the following pattern. A failure that is not a plain absence of a match
+/// is reported the way the reference reports it, because a pattern exhausting a
+/// match limit would otherwise look like text that simply is not a link.
 pub fn classify(candidate: &str) -> Option<LinkKind> {
     for (entry, compiled) in PATTERNS.iter().zip(COMPILED.iter()) {
-        if compiled
-            .as_ref()
-            .is_ok_and(|pattern| pattern.matches(candidate) == Ok(true))
-        {
-            return Some(entry.kind);
+        let Ok(pattern) = compiled else { continue };
+
+        match pattern.matches(candidate) {
+            Ok(true) => return Some(entry.kind),
+            Ok(false) => continue,
+            Err(error) => {
+                glib::g_warning!(
+                    crate::LOG_DOMAIN,
+                    "pcre2_match returned error code \"{error}\"."
+                );
+            }
         }
     }
     None
@@ -433,19 +448,20 @@ pub fn launch_uri(candidate: &str, kind: Option<LinkKind>) -> Result<String, Str
 /// Reports whether a link may be opened.
 ///
 /// Only a `file:` URI is restricted: it has to name this host so that a path
-/// from another machine is not opened locally. A candidate that is not a valid
-/// file URI carries no host name and counts as local.
+/// from another machine is not opened locally. A candidate that names no host
+/// counts as local, which covers both a URI GLib cannot parse at all and the
+/// local `file:///path` form.
 pub fn is_clickable(candidate: &str, kind: Option<LinkKind>) -> bool {
     if kind != Some(LinkKind::File) {
         return true;
     }
 
-    match glib::filename_from_uri(candidate) {
-        Ok((_, Some(host))) => {
+    match crate::ffi::glib::uri_host(candidate) {
+        Some(host) => {
             host.eq_ignore_ascii_case("localhost")
                 || host.eq_ignore_ascii_case(glib::host_name().as_str())
         }
-        _ => true,
+        None => true,
     }
 }
 
@@ -460,7 +476,7 @@ pub fn clipboard_text(candidate: &str) -> &str {
 
 #[cfg(test)]
 mod tests {
-    use super::{LinkKind, PATTERNS, compile_errors, kind_name};
+    use super::{LinkKind, NEWS_MAN_INDEX, PATTERNS, compile_errors, kind_name};
 
     #[test]
     fn every_pattern_compiles_with_the_reference_options() {
@@ -472,7 +488,7 @@ mod tests {
         for (index, entry) in PATTERNS.iter().enumerate() {
             assert_eq!(
                 entry.pattern.matches("(?(DEFINE)").count(),
-                if index == 4 { 0 } else { 6 },
+                if index == NEWS_MAN_INDEX { 0 } else { 6 },
                 "pattern {index} defines an unexpected number of subroutines"
             );
         }

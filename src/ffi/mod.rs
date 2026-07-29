@@ -1,3 +1,4 @@
+pub(crate) mod glib;
 pub(crate) mod gtk;
 pub(crate) mod libc;
 pub(crate) mod pcre2;

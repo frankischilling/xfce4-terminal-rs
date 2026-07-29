@@ -91,6 +91,8 @@ classify (TerminalWidget *widget,
 
       if (result >= 0)
         return regex_patterns[i].type;
+      else if (result != PCRE2_ERROR_NOMATCH)
+        g_warning ("pcre2_match returned error code \"%d\".", result);
     }
 
   return PATTERN_TYPE_NONE;
@@ -153,6 +155,7 @@ main (int argc,
       char **argv)
 {
   TerminalWidget *widget;
+  GtkWidget *window;
   gchar *fixtures;
   gchar **candidates;
   guint i;
@@ -178,7 +181,14 @@ main (int argc,
       return 2;
     }
 
-  widget = g_object_ref_sink (g_object_new (TERMINAL_TYPE_WIDGET, NULL));
+  /* terminal_widget_open_uri looks the widget's toplevel up and hands it to the
+   * launcher as a window. The widget needs a real one, both so that the pointer
+   * is what the frozen code expects and so that GLib's type check stays quiet;
+   * the check only compiles away because the reference optimizes its build. */
+  widget = g_object_new (TERMINAL_TYPE_WIDGET, NULL);
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (widget));
+  g_object_ref_sink (window);
 
   for (i = 0; i < G_N_ELEMENTS (regex_patterns); i++)
     fprintf (report, "pattern\t%u\t%s\t%s\n", i,
@@ -202,5 +212,6 @@ main (int argc,
 
   g_strfreev (candidates);
   g_free (fixtures);
+  g_object_unref (window);
   return fclose (report) == 0 ? 0 : 2;
 }
