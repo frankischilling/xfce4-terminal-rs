@@ -2,10 +2,12 @@
 
 # Compares the link contract of the frozen C widget with the Rust candidate.
 #
-# Both probes read the same candidate corpus and print the registered patterns,
+# Both probes read the same candidate corpus and write the registered patterns,
 # the classification of every candidate, whether it may be opened, the URI it
 # opens with, and the text copying it produces. The frozen probe needs a display
 # and a session bus because it builds a real widget and reads a real clipboard.
+# Each probe writes to a named file, so the messages those wrappers print cannot
+# reach the compared report.
 
 set -eu
 
@@ -30,7 +32,7 @@ run_probe()
 {
   probe=$1
   root=$2
-  output=$3
+  report=$3
   mkdir -p "$root/home" "$root/config" "$root/cache"
   env \
     HOME="$root/home" \
@@ -39,7 +41,7 @@ run_probe()
     LC_ALL=C \
     NO_AT_BRIDGE=1 \
     xvfb-run --auto-servernum \
-    dbus-run-session -- "$probe" "$fixtures" > "$output"
+    dbus-run-session -- "$probe" "$fixtures" "$report"
 }
 
 run_probe "$reference_probe" "$test_root/reference" "$test_root/reference.tsv"
@@ -53,3 +55,5 @@ grep -q '	email$' "$test_root/reference.tsv"
 grep -q '	file$' "$test_root/reference.tsv"
 grep -q '	none$' "$test_root/reference.tsv"
 grep -q '^clickable	file://.*	false$' "$test_root/reference.tsv"
+# A candidate outside ASCII has to survive with its own bytes.
+grep -qF 'classify	http://exämple.com/päth	full-http' "$test_root/reference.tsv"

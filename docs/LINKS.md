@@ -63,10 +63,17 @@ reference build: the order and kinds of the table, the length of each expanded
 pattern, classification, clickable file hosts, launch prefixes, and copied text.
 
 The proof lives in `tests/reference/link-matching.sh`. Both probes read
-`tests/reference/link-fixtures.txt` and print the registered patterns and, for
+`tests/reference/link-fixtures.txt` and write the registered patterns and, for
 every candidate, its classification, whether it may be opened, the URI it opens
 with, and the text copying it produces. The script then checks that the corpus
-actually reached every kind, so an empty comparison cannot pass.
+actually reached every kind, so an empty comparison cannot pass, and that a
+candidate outside ASCII kept its own bytes.
+
+Each probe writes to a named file rather than to standard output. The frozen
+probe runs under a display and a session bus, and those wrappers print messages
+of their own that would otherwise land in the compared report. For the same
+reason the frozen probe uses stdio instead of GLib's printing functions, which
+would convert a candidate to the current locale encoding.
 
 `tests/reference/link-probe.c` includes the frozen `terminal-widget.c` and links
 the remaining frozen objects, so the file-private helpers report on the reference
