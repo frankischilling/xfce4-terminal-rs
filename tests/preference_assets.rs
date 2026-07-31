@@ -135,29 +135,56 @@ fn installed_and_user_color_schemes_share_one_sorted_model() {
 }
 
 #[test]
-fn system_configuration_color_schemes_follow_user_precedence() {
+fn system_configuration_color_schemes_follow_user_and_system_precedence() {
     let root = TempDirectory::new("xfce4-terminal-config-colors");
     let user = root.path().join("user/xfce4/terminal/colorschemes");
-    let system = root.path().join("system/xfce4/terminal/colorschemes");
+    let first_system = root.path().join("system-first/xfce4/terminal/colorschemes");
+    let later_system = root.path().join("system-later/xfce4/terminal/colorschemes");
     std::fs::create_dir_all(&user).expect("create user schemes");
-    std::fs::create_dir_all(&system).expect("create system schemes");
+    std::fs::create_dir_all(&first_system).expect("create first system schemes");
+    std::fs::create_dir_all(&later_system).expect("create later system schemes");
     std::fs::write(user.join("shared.theme"), "[Scheme]\nName=User\n").expect("write user scheme");
     std::fs::write(
-        system.join("shared.theme"),
-        "[Scheme]\nName=Shadowed system\n",
+        first_system.join("shared.theme"),
+        "[Scheme]\nName=Shadowed user\n",
     )
-    .expect("write shadowed system scheme");
-    std::fs::write(system.join("system.theme"), "[Scheme]\nName=System only\n")
-        .expect("write system scheme");
+    .expect("write first shadowed user scheme");
+    std::fs::write(
+        later_system.join("shared.theme"),
+        "[Scheme]\nName=Later shadowed user\n",
+    )
+    .expect("write later shadowed user scheme");
+    std::fs::write(
+        first_system.join("system-shared.theme"),
+        "[Scheme]\nName=First system\n",
+    )
+    .expect("write first system scheme");
+    std::fs::write(
+        later_system.join("system-shared.theme"),
+        "[Scheme]\nName=Shadowed later system\n",
+    )
+    .expect("write shadowed later system scheme");
+    std::fs::write(
+        later_system.join("system-later.theme"),
+        "[Scheme]\nName=Later system only\n",
+    )
+    .expect("write later system scheme");
 
-    let schemes = colors::discover(&[], &[root.path().join("user"), root.path().join("system")])
-        .expect("discover configuration schemes");
+    let schemes = colors::discover(
+        &[],
+        &[
+            root.path().join("user"),
+            root.path().join("system-first"),
+            root.path().join("system-later"),
+        ],
+    )
+    .expect("discover configuration schemes");
 
     assert_eq!(
         schemes
             .iter()
             .map(|scheme| scheme.name.as_str())
             .collect::<Vec<_>>(),
-        ["System only", "User"]
+        ["First system", "Later system only", "User"]
     );
 }
