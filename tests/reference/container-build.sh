@@ -37,6 +37,9 @@ DESTDIR="$output_dir/install" meson install -C "$build_dir"
 "$repository/tests/reference/build-link-probe.sh" \
   "$build_dir" \
   "$build_dir/link-probe"
+"$repository/tests/reference/build-vte-adapter-probe.sh" \
+  "$build_dir" \
+  "$build_dir/vte-adapter-probe"
 "$repository/tests/reference/build-child-probe.sh" \
   "$build_dir" \
   "$build_dir/child-probe"
