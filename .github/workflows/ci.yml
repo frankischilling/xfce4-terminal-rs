@@ -103,6 +103,7 @@ jobs:
           reference_colors="$RUNNER_TEMP/xfce4-terminal-reference/build/color-resource-probe"
           reference_links="$RUNNER_TEMP/xfce4-terminal-reference/build/link-probe"
           reference_vte_adapter="$RUNNER_TEMP/xfce4-terminal-reference/build/vte-adapter-probe"
+          reference_vte_search="$RUNNER_TEMP/xfce4-terminal-reference/build/vte-search-probe"
           reference_child="$RUNNER_TEMP/xfce4-terminal-reference/build/child-probe"
           reference_screen="$RUNNER_TEMP/xfce4-terminal-reference/build/screen-probe"
           reference_call_probe="$RUNNER_TEMP/xfce4-terminal-reference/build/application-call-probe.so"
@@ -113,6 +114,7 @@ jobs:
           candidate_accelerators="./build/rust/cargo-target/release/xfce4-terminal-accelerator-probe"
           candidate_links="./build/rust/cargo-target/release/xfce4-terminal-link-probe"
           candidate_vte_adapter="./build/rust/cargo-target/release/xfce4-terminal-vte-adapter-probe"
+          candidate_vte_search="./build/rust/cargo-target/release/xfce4-terminal-vte-search-probe"
           candidate_child="./build/rust/cargo-target/release/xfce4-terminal-child-probe"
           candidate_screen="./build/rust/cargo-target/release/xfce4-terminal-screen-probe"
           test -x "$reference_binary"
@@ -121,6 +123,7 @@ jobs:
           test -x "$reference_colors"
           test -x "$reference_links"
           test -x "$reference_vte_adapter"
+          test -x "$reference_vte_search"
           test -x "$reference_child"
           test -x "$reference_screen"
           test -f "$reference_call_probe"
@@ -131,6 +134,7 @@ jobs:
           test -x "$candidate_accelerators"
           test -x "$candidate_links"
           test -x "$candidate_vte_adapter"
+          test -x "$candidate_vte_search"
           test -x "$candidate_child"
           test -x "$candidate_screen"
 
@@ -152,6 +156,9 @@ jobs:
           tests/reference/vte-adapter.sh \
             "$reference_vte_adapter" \
             "$candidate_vte_adapter"
+          tests/reference/vte-search.sh \
+            "$reference_vte_search" \
+            "$candidate_vte_search"
           xvfb-run --auto-servernum tests/reference/child-process.sh \
             "$reference_child" \
             "$candidate_child" \
