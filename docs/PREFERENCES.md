@@ -81,7 +81,10 @@ data and configuration search paths, accepts any preset filename, and skips
 files that cannot provide a name. Within each search path, the first directory
 containing a relative filename wins, as it does for Xfce resource lookup. Data
 and configuration resources are searched independently, so a user scheme may
-share a filename with an installed scheme. The reader uses localized names from
+share a filename with an installed scheme. `XDG_CONFIG_DIRS` can name several
+system configuration roots. The reader checks them from left to right, so an
+earlier root wins a filename collision and a scheme that exists only in a later
+root is still available. The reader uses localized names from
 the `[Scheme]` key-file group and sorts the result by name.
 
 The gettext domain is `xfce4-terminal`, the character set is `UTF-8`, and
@@ -114,8 +117,11 @@ libraries. `tests/preference_assets.rs` reads all built-in schemes and combines
 data and configuration schemes. `tests/reference/color-resources.sh` compares
 the frozen Xfce resource lookup with the Rust reader across user and system data
 and configuration roots. It also checks duplicate filenames, directories, and
-symbolic links. Protected CI compares the installed color schemes and gettext
-catalogs from the frozen and candidate Meson builds.
+symbolic links. Its fixture uses one duplicate between the user and system
+configuration roots, another duplicate across two `XDG_CONFIG_DIRS` roots, and
+a scheme that exists only in the later system root. Protected CI compares the
+installed color schemes and gettext catalogs from the frozen and candidate
+Meson builds.
 
 The installed program remains the C application. These tests cover the
 preference contract, but they do not change the final cutover rule.
