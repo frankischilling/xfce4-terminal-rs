@@ -47,6 +47,10 @@ path = "src/bin/color_resource_probe.rs"
 name = "xfce4-terminal-vte-adapter-probe"
 path = "src/bin/vte_adapter_probe.rs"
 
+[[bin]]
+name = "xfce4-terminal-vte-search-probe"
+path = "src/bin/vte_search_probe.rs"
+
 [profile.release]
 lto = "thin"
 strip = true

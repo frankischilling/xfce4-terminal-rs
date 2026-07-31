@@ -137,6 +137,63 @@ impl VteAdapter {
         gtk::Clipboard::for_display(&display, &gdk::SELECTION_CLIPBOARD).set_text(text);
         Ok(())
     }
+
+    /// Sets the search expression and its wrap-around behavior.
+    ///
+    /// This mirrors `terminal_screen_search_set_gregex`: the caller creates a
+    /// VTE search regex, then hands it to the screen-facing widget boundary.
+    /// Passing `None` clears the active expression while still applying the
+    /// requested wrap setting.
+    pub fn set_search_regex(
+        &self,
+        regex: Option<&zoha_vte::Regex>,
+        wrap_around: bool,
+    ) -> Result<(), String> {
+        ensure_main_thread()?;
+        self.terminal.search_set_regex(regex, 0);
+        self.terminal.search_set_wrap_around(wrap_around);
+        Ok(())
+    }
+
+    /// Returns whether VTE currently has a search expression.
+    pub fn has_search_regex(&self) -> Result<bool, String> {
+        ensure_main_thread()?;
+        Ok(self.terminal.search_get_regex().is_some())
+    }
+
+    /// Returns the wrap-around state VTE uses for search navigation.
+    pub fn search_wraps(&self) -> Result<bool, String> {
+        ensure_main_thread()?;
+        Ok(self.terminal.search_get_wrap_around())
+    }
+
+    /// Moves VTE's search state to the next match.
+    ///
+    /// The frozen screen method intentionally discards VTE's return value.
+    pub fn find_next(&self) -> Result<(), String> {
+        ensure_main_thread()?;
+        let _ = self.terminal.search_find_next();
+        Ok(())
+    }
+
+    /// Moves VTE's search state to the previous match.
+    ///
+    /// The frozen screen method intentionally discards VTE's return value.
+    pub fn find_previous(&self) -> Result<(), String> {
+        ensure_main_thread()?;
+        let _ = self.terminal.search_find_previous();
+        Ok(())
+    }
+
+    /// Resets VTE and clears its search expression only when history is cleared.
+    pub fn reset(&self, clear: bool) -> Result<(), String> {
+        ensure_main_thread()?;
+        self.terminal.reset(true, clear);
+        if clear {
+            self.terminal.search_set_regex(None, 0);
+        }
+        Ok(())
+    }
 }
 
 fn ensure_main_thread() -> Result<(), String> {

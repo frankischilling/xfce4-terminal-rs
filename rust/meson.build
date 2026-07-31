@@ -44,6 +44,7 @@ rust_sources = files(
   '../src/bin/preferences_probe.rs',
   '../src/bin/screen_probe.rs',
   '../src/bin/vte_adapter_probe.rs',
+  '../src/bin/vte_search_probe.rs',
   '../src/child.rs',
   '../src/cli.rs',
   '../src/colors.rs',
@@ -69,6 +70,7 @@ rust_sources = files(
   '../tests/preferences_parity.rs',
   '../tests/screen_model.rs',
   '../tests/vte_adapter.rs',
+  '../tests/vte_search.rs',
   '../tests/xfconf_round_trip.rs',
   '../tests/support/mod.rs',
   '../tests/differential_harness.rs',
@@ -86,6 +88,7 @@ rust_sources = files(
   '../tests/reference/build-preferences-probe.sh',
   '../tests/reference/build-screen-probe.sh',
   '../tests/reference/build-vte-adapter-probe.sh',
+  '../tests/reference/build-vte-search-probe.sh',
   '../tests/reference/application-call-probe.c',
   '../tests/reference/application-calls.sh',
   '../tests/reference/child-fixtures.txt',
@@ -110,6 +113,8 @@ rust_sources = files(
   '../tests/reference/screen-probe.c',
   '../tests/reference/vte-adapter-probe.c',
   '../tests/reference/vte-adapter.sh',
+  '../tests/reference/vte-search-probe.c',
+  '../tests/reference/vte-search.sh',
   '../tests/reference_contract.rs',
 )
 

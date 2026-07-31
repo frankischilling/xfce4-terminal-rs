@@ -37,8 +37,9 @@ The first is the C reference. The second is the Rust candidate and is not
 installed yet.
 
 For the covered C-locale cases, the candidate matches the frozen command-line
-help, version output, ANSI color table, and window or tab launch parser. It
-does not create terminal windows yet.
+help, version output, ANSI color table, window or tab launch parser, VTE link
+registration, link selection writes, and screen search state. It does not
+create terminal windows yet.
 
 Rust tests can also run directly:
 
