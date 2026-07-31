@@ -13,7 +13,7 @@ parity on its own.
 | Terminal links | Pattern text and table order, hyperlink classification, opened URI, clickable file hosts, and clipboard text | Complete |
 | Terminal child process | The command, the argument vector, the spawn flags, and the child environment, over each answer the login shell search can reach as an ordinary user, and with and without a realized X11 toplevel | Complete |
 | Terminal screen model | Title expansions and modes, the stored working directory and directory URI, paste-safety detection, and the deterministic colors handed to VTE | Complete |
-| Terminal screen | Child lifecycle, search, background handling, scrolling, VTE highlighting of the same patterns, and clipboard primary selection | Not started |
+| Terminal screen | Child lifecycle, search, background handling, scrolling, VTE highlighting of the same patterns, and clipboard primary selection | In progress |
 | Window interface | Windows, tabs, menus, toolbar, shortcuts, focus, drag and drop, and confirmations | Not started |
 | Application service | Multi-window reuse, session state, and the `org.xfce.Terminal5` wire contract | Not started |
 | Drop-down mode | Placement, animation, monitor changes, focus, X11, and Wayland layer shell | Not started |

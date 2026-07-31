@@ -55,6 +55,7 @@ cargo test --all-targets --all-features --locked
 - `docs/PREFERENCES.md` documents Xfconf storage, migration, and preference
   proof.
 - `docs/LINKS.md` documents the link patterns and what a match implies.
+- `docs/VTE.md` documents the current VTE adapter and its frozen-C proof.
 - `docs/SCREEN.md` documents titles, working directories, paste safety, and
   the colors handed to VTE.
 - `HACKING` explains the issue and pull request workflow.

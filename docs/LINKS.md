@@ -29,10 +29,11 @@ The reference compiles this table twice, for two different jobs. It compiles eac
 pattern with no options to classify the target of an escape-sequence hyperlink,
 and it compiles the same text again with
 `PCRE2_CASELESS | PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_MULTILINE`, JIT-compiles
-it, and hands it to VTE to highlight matches on screen. Only the first is ported
-here. The options are not interchangeable: `PCRE2_UTF` changes what the host
+it, and hands it to VTE to highlight matches on screen. The Rust adapter now
+registers that second form with VTE. The options are not interchangeable:
+`PCRE2_UTF` changes what the host
 fragment's `(?! [[:ascii:]] ) [[:graph:]]` accepts, so the highlighting path needs
-its own proof and belongs with the screen work.
+its own proof and stays with the screen work.
 
 Patterns are compiled through the system PCRE2 library, the same one the C
 reference and VTE use. `classify` compiles them once on first use with no
@@ -135,14 +136,14 @@ remote `file:` URI that the reference would never follow. That is deliberate, an
 it means the report describes what each helper answers rather than which helpers a
 click reaches.
 
-Four things stay outside this boundary. Highlighting the matches inside a running
-terminal needs the VTE widget and a second set of compile options, so it belongs
-with the screen work. Nothing compares the extent of a match, only whether there
-was one, so the fragments that trim a trailing quote or balance a bracket rest on
-the pattern text being identical and the library being shared; comparing extent
-belongs with highlighting, which is what extent is for. Copying sets only the
-clipboard here, while the reference sets the primary selection as well, in an order
-it fixes deliberately; the port has no clipboard writer yet. And the corpus is read
-as text, so it cannot carry a candidate that is not valid UTF-8, even though these
-patterns are compiled without PCRE2's UTF mode and the reference matches raw bytes.
-VTE hands out UTF-8, so nothing reachable is lost today.
+The first widget slice registers the same five patterns with VTE for highlighting
+and gives each one the `hand2` cursor. It also copies a context-menu link to the
+PRIMARY selection before copying it to CLIPBOARD. `docs/VTE.md` describes the
+frozen-C comparison for those two actions.
+
+The precise extent of a VTE match is still unproven. The pattern fragments that
+trim a trailing quote or balance a bracket currently rely on matching pattern
+text and the shared PCRE2 library. Pointer-driven matching remains with the
+rest of the terminal-screen work. The corpus is text, so it cannot hold a
+candidate that is not valid UTF-8. VTE supplies UTF-8 text to the widget, so
+that limit does not exclude a user-visible match today.
